@@ -232,6 +232,10 @@ sfr SADDR = 0xA9; //Slave Address                                               
 //-----------------------------------
 //                                7      6      5      4      3      2     1     0        Reset Value
 sfr S2CON = 0x9A; //S2 Control  S2SM0  S2SM1  S2SM2  S2REN  S2TB8  S2RB8  S2TI  S2RI      00000000B
+//-----------------------------------
+sbit S2TI  = SCON^1;
+sbit S2RI  = SCON^0;
+//-----------------------------------
 sfr S2BUF = 0x9B; //S2 Serial Buffer                                                      xxxx,xxxx
 sfr BRT = 0x9C; //S2 Baud-Rate Timer                                                    0000,0000
 //--------------------------------------------------------------------------------

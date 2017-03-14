@@ -13,7 +13,7 @@
 
 #include "main.h"
 #include "intrins.h"
-
+#include "uart.h"
 
 
 
@@ -29,6 +29,8 @@
 **/
 void main()
 {
+
+    Uart_1_Init();
 
 
     // SendString("STC12C5A60S2\r\nUart Test !\r\n");
