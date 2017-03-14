@@ -368,6 +368,11 @@
               <FileType>1</FileType>
               <FilePath>.\source\main.c</FilePath>
             </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\uart.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
