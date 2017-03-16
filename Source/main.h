@@ -14,6 +14,12 @@ typedef unsigned short     int uint16_t;
 typedef unsigned           int uint32_t;
 
 
+typedef bit bool;
+
+
+#define FLASE 0
+#define TRUE  1
+
 #define FOSC 11059200L      //系统频率
 
 
