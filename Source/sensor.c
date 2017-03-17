@@ -1,5 +1,5 @@
 /******************************************************************************
-* @file    PM2_5.c
+* @file    sensor.c
 * @author  xxc
 * @version V1.0
 * @date    2017-03-14
@@ -24,7 +24,7 @@ uint8_t CO2_data[30];
 * @output   ：None
 * @retval   ：None
 **/
-void Get_PM2_5_Value(uint8_t dat)
+void Get_PM2_5_Value(uint8_t *buf)
 {
 
 
