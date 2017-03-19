@@ -11,6 +11,10 @@
 *
 *******************************************************************************/ 
 
+#include "main.h"
+#include "display.h"
+#include "timer.h"
+
 
 /******************************************************** 
 功能描述:HT1621指令集
@@ -36,47 +40,65 @@ sbit HT1621_DAT = P2^2;   // - - HT1621数据引脚
 
 
 /* 功能描述:LCD清屏数组 */
-uchar code Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+uint8_t code Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 
 /********************************************************
 数组名称：Ht1621Tab1 / Ht1621Tab2            
 功能描述: T1（自动）T2（手动）T3(更换)不需要显示时数码管的控制
 ********************************************************/
-uchar code Ht1621Tab1[]={0x05,0x00,0x06,0x02,0x03,0x03,0x07,0x00,0x07,0x03};
+uint8_t code Ht1621Tab1[]={0x05,0x00,0x06,0x02,0x03,0x03,0x07,0x00,0x07,0x03};
 		            	//0	   1	 2	  3	   4	5	6	 7	  8	   9
-uchar code Ht1621Tab2[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
+uint8_t code Ht1621Tab2[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
 					    //0    1	 2	  3	   4	5	6	 7	  8	   9
 /********************************************************
 数组名称：Ht1621Tab3            
 功能描述:开机显示T4.T5
 ********************************************************/
-uchar code Ht1621Tab3[]={0x08};	
+uint8_t code Ht1621Tab3[]={0x08};	
 /********************************************************
 数组名称：Ht1621Tab4 / Ht1621Tab5            
 功能描述: T1（自动）T2（手动）T3(更换) 	T4 T5 需要显示时数码管的控制 
 数码管1 4必须使用该两个数组
 ********************************************************/
-uchar code Ht1621Tab4[]={0x0D,0x08,0x0E,0x0A,0x0B,0x0B,0x0F,0x08,0x0F,0x0B};
+uint8_t code Ht1621Tab4[]={0x0D,0x08,0x0E,0x0A,0x0B,0x0B,0x0F,0x08,0x0F,0x0B};
 			            //0	   1	 2	  3	   4	5	6	 7	  8	   9
-uchar code Ht1621Tab5[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
+uint8_t code Ht1621Tab5[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
 					    //0    1	 2	  3	   4	5	6	 7	  8	   9
 /********************************************************
 数组名称：Ht1621Tab6 / Ht1621Tab7            
 功能描述: 外循环--强风/和风/睡眠
           内循环--强风/和风/睡眠) 
 ********************************************************/
-uchar code Ht1621Tab6[]={0X00,0x01,0x03,0x07,};	
+uint8_t code Ht1621Tab6[]={0X00,0x01,0x03,0x07,};	
 			   //外循环	      睡眠 和风 强风
-uchar code Ht1621Tab7[]={0x00,0x0C,0x0A,0x09,};
+uint8_t code Ht1621Tab7[]={0x00,0x0C,0x0A,0x09,};
                //外循环	      睡眠 和风 强风
-uchar code Ht1621Tab8[]={0X00,0x09,0x0B,0x0F,};	
+uint8_t code Ht1621Tab8[]={0X00,0x09,0x0B,0x0F,};	
 			   //内循环	      睡眠 和风 强风
-uchar code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
+uint8_t code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
                //内循环	      睡眠 和风 强风
 
 
 
+
+
+/**
+* @Function ：开机屏幕显示
+* @brief    ：
+* @input    ：None 
+* @output   ：None
+* @retval   ：None
+**/
+void Display_Init(void)
+{
+    Display_PM2_5_Ico();
+    Display_CO2_Ico();
+    Display_Fan_Ico();
+    
+
+
+}
 
 /**
 * @Function ：清除屏幕显示
@@ -88,6 +110,44 @@ uchar code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
 void Display_Clear(void)
 {
     Ht1621WrAllData(0, Ht1621Tab, 16);           // - - 清除1621寄存器数据，实现清屏                       
+}
+
+/**
+* @Function ：显示/隐藏外循环图标
+* @brief    ：
+* @input    ：-sw 显示操作，TRUE显示，FLASE隐藏
+* @output   ：None
+* @retval   ：None
+**/
+void Display_Exter_Ico(bool sw)
+{
+    if(sw)
+    {
+
+    }
+    else
+    {
+
+    }          
+}
+
+/**
+* @Function ：显示/隐藏内循环图标
+* @brief    ：
+* @input    ：-sw 显示操作，TRUE显示，FLASE隐藏
+* @output   ：None
+* @retval   ：None
+**/
+void Display_Inter_Ico(bool sw)
+{
+    if(sw)
+    {
+
+    }
+    else
+    {
+
+    }          
 }
 
 /**
@@ -139,11 +199,15 @@ void Display_Filte_Ico(bool sw)
 {
     if(sw)
     {
-
+        // #ifdef  LOGGER
+        //     Uart_1_SendString(" \r\n Display_Filte_Ico(TRUE);");
+        // #endif	
     }
     else
     {
-
+        // #ifdef  LOGGER
+        //     Uart_1_SendString(" \r\n Display_Filte_Ico(FLASE);");
+        // #endif	
     }           
 }
 
@@ -175,7 +239,18 @@ void Display_CO2_Ico(void)
     //Ht1621WrOneData(7, Ht1621Tab7[level]);           
 }
 
-
+/**
+* @Function ：显示风叶图标
+* @brief    ：
+* @input    ：
+* @output   ：None
+* @retval   ：None
+**/
+void Display_Fan_Ico(void)
+{
+    //Ht1621WrOneData(6, Ht1621Tab6[level]);
+    //Ht1621WrOneData(7, Ht1621Tab7[level]);           
+}
 
 /**
 * @Function ：显示外循环风量
@@ -212,7 +287,7 @@ void Display_In_WindLevel(uint8_t level)
 **/
 void Display_PM2_5_value(uint16_t value)
 {
-    uint8_t hun, ten, one；
+    uint8_t hun, ten, one;
 
     hun = value / 100 % 10;
     ten = value / 10 % 10;
@@ -232,7 +307,7 @@ void Display_PM2_5_value(uint16_t value)
 **/
 void Display_CO2_value(uint16_t value)
 {
-    uint8_t ths,hun, ten, one；
+    uint8_t ths,hun, ten, one;
 
     ths = value / 1000 % 10;
     hun = value / 100 % 10;
@@ -281,18 +356,18 @@ void Ht1621_Init(void)
 * @output   ：None
 * @retval   ：None
 **/
-void Ht1621Wr_Data(uint8_t Data,uint8_t cnt)
+void Ht1621WrData(uint8_t Data, uint8_t cnt)
 {
     uint8_t i;
     for (i = 0; i < cnt; i++) 
     {
-        HT1621_WR=0;
+        HT1621_WR = 0;
         Delay_10us();
         HT1621_DAT = Data&0x80;
         Delay_10us();
         HT1621_WR = 1;
         Delay_10us();
-        Data<< = 1;
+        Data <<= 1;
     }
 }
 
@@ -307,8 +382,8 @@ void Ht1621WrCmd(uint8_t Cmd)
 {
     HT1621_CS = 0;
     Delay_10us();
-    Ht1621Wr_Data(0x80,4);              // - -写入命令标志100
-    Ht1621Wr_Data(Cmd,8);               // - - 写入命令数据
+    Ht1621WrData(0x80,4);              // - -写入命令标志100
+    Ht1621WrData(Cmd,8);               // - - 写入命令数据
     HT1621_CS = 1;
     Delay_10us();
 }
@@ -321,12 +396,12 @@ void Ht1621WrCmd(uint8_t Cmd)
 * @output   ：None
 * @retval   ：None
 **/
-void Ht1621WrOneData(uint8_t Addr,uint8_t Data)
+void Ht1621WrOneData(uint8_t Addr, uint8_t Data)
 {
     HT1621_CS = 0;
-    Ht1621Wr_Data(0xa0,3);          // - - 写入数据标志101
-    Ht1621Wr_Data(Addr<<2,6);       // - - 写入地址数据
-    Ht1621Wr_Data(Data<<4,4);       // - - 写入数据
+    Ht1621WrData(0xa0,3);          // - - 写入数据标志101
+    Ht1621WrData(Addr<<2,6);       // - - 写入地址数据
+    Ht1621WrData(Data<<4,4);       // - - 写入数据
     HT1621_CS = 1;
     Delay_10us();
 }
@@ -340,15 +415,15 @@ void Ht1621WrOneData(uint8_t Addr,uint8_t Data)
 * @output   ：None
 * @retval   ：None
 **/
-void Ht1621WrAllData(uint8_t Addr,uint8_t *p,uint8_t cnt)
+void Ht1621WrAllData(uint8_t Addr, uint8_t *p, uint8_t cnt)
 {
     uint8_t i;
     HT1621_CS = 0;
-    Ht1621Wr_Data(0xa0,3);              // - - 写入数据标志101
-    Ht1621Wr_Data(Addr<<2,6);           // - - 写入地址数据
+    Ht1621WrData(0xa0,3);              // - - 写入数据标志101
+    Ht1621WrData(Addr<<2,6);           // - - 写入地址数据
     for (i = 0; i < cnt; i++)
     {
-        Ht1621Wr_Data(*p,8);            // - - 写入数据
+        Ht1621WrData(*p,8);            // - - 写入数据
         p++;
     }
     HT1621_CS = 1;

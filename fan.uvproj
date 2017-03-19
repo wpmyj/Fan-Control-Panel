@@ -373,6 +373,21 @@
               <FileType>1</FileType>
               <FilePath>.\Source\uart.c</FilePath>
             </File>
+            <File>
+              <FileName>display.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\display.c</FilePath>
+            </File>
+            <File>
+              <FileName>eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\eeprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\timer.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
