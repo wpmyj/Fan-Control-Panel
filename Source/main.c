@@ -560,6 +560,9 @@ void Send_Status_Drive(void)
 void main()
 {
 
+	uint8_t Temp1 = 0x01;
+	uint8_t Temp2 = 0x00;
+
 	Uart_1_Init();
     Uart_2_Init();
 	Uart_vir_Init();
@@ -569,9 +572,23 @@ void main()
 
 
 	Uart_1_SendString("STC12C5A60S2\r\nUart_1 Test !\r\n");
-    Uart_2_SendString("STC12C5A60S2\r\nUart_2 Test !\r\n");
+    //Uart_2_SendString("STC12C5A60S2\r\nUart_2 Test !\r\n");
+
 
 	while(1)
+	{
+		Temp1 = Temp1 ^ 0x08;
+		Uart_2_SendByte(Temp1);
+		Delay_ms(1000);
+		Con_BackLight = ~ Con_BackLight;
+		Temp1 = Temp1 ^ 0x08;
+		Uart_2_SendByte(Temp1);
+
+
+	}
+
+
+/*	while(1)
 	{
 		Uart_vir_Main();
 		//Delay_ms(1000);
@@ -598,7 +615,7 @@ void main()
 
 		//Uart_2_SendByte(Time_Base_1M);
 		
-	}
+	}*/
 
 /*    while(1)
 	{

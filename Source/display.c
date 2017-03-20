@@ -79,8 +79,11 @@ uint8_t code Ht1621Tab8[]={0X00,0x09,0x0B,0x0F,};
 uint8_t code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
                //内循环	      睡眠 和风 强风
 
+uint8_t code Ht1621_Tube[]={0x05,0x04,0x02,0x01,};  //0 1 2 3 4 5 6 7 8 9
 
+uint8_t Ht1621_Tab[16] = {0x00};
 
+uint8_t T3 = 0x08;
 
 
 /**
@@ -92,9 +95,9 @@ uint8_t code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
 **/
 void Display_Init(void)
 {
-    Display_PM2_5_Ico();
-    Display_CO2_Ico();
-    Display_Fan_Ico();
+    // Display_PM2_5_Ico();
+    // Display_CO2_Ico();
+    // Display_Fan_Ico();
     
 
 
@@ -123,12 +126,14 @@ void Display_Exter_Ico(bool sw)
 {
     if(sw)
     {
-
+        Ht1621_Tab[7] |= 0x08;
     }
     else
     {
-
-    }          
+        Ht1621_Tab[7] |= 0x08;        
+        Ht1621_Tab[7] ^= 0x08;
+    }      
+    Ht1621WrOneData(7, Ht1621_Tab[7]);          
 }
 
 /**
@@ -142,12 +147,14 @@ void Display_Inter_Ico(bool sw)
 {
     if(sw)
     {
-
+        Ht1621_Tab[6] |= 0x08;
     }
     else
     {
-
-    }          
+        Ht1621_Tab[6] |= 0x08;        
+        Ht1621_Tab[6] ^= 0x08;
+    }      
+    Ht1621WrOneData(6, Ht1621_Tab[6]);                                  
 }
 
 /**
@@ -161,12 +168,14 @@ void Display_Manual_Ico(bool sw)
 {
     if(sw)
     {
-
+        Ht1621_Tab[10] |= 0x08;
     }
     else
     {
-
-    }          
+        Ht1621_Tab[10] |= 0x08;        
+        Ht1621_Tab[10] ^= 0x08;
+    }   
+    Ht1621WrOneData(10, Ht1621_Tab[10]);                         
 }
 
 /**
@@ -180,12 +189,14 @@ void Display_Auto_Ico(bool sw)
 {
     if(sw)
     {
-
+        Ht1621_Tab[2] |= 0x08;
     }
     else
     {
-
-    }           
+        Ht1621_Tab[2] |= 0x08;
+        Ht1621_Tab[2] ^= 0x08;
+    }      
+    Ht1621WrOneData(2, Ht1621_Tab[2]);             
 }
 
 /**
@@ -199,16 +210,14 @@ void Display_Filte_Ico(bool sw)
 {
     if(sw)
     {
-        // #ifdef  LOGGER
-        //     Uart_1_SendString(" \r\n Display_Filte_Ico(TRUE);");
-        // #endif	
+        Ht1621_Tab[14] |= 0x08;
     }
     else
     {
-        // #ifdef  LOGGER
-        //     Uart_1_SendString(" \r\n Display_Filte_Ico(FLASE);");
-        // #endif	
-    }           
+        Ht1621_Tab[14] |= 0x08;        
+        Ht1621_Tab[14] ^= 0x08;
+    }   
+    Ht1621WrOneData(14, Ht1621_Tab[14]);        
 }
 
 
@@ -220,10 +229,18 @@ void Display_Filte_Ico(bool sw)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_PM2_5_Ico(void)
-{
-    //Ht1621WrOneData(6, Ht1621Tab6[level]);
-    //Ht1621WrOneData(7, Ht1621Tab7[level]);           
+void Display_PM2_5_Ico(bool sw)
+{  
+    if(sw)
+    {
+        Ht1621_Tab[0] |= 0x08;
+    }
+    else
+    {
+        Ht1621_Tab[0] |= 0x08;
+        Ht1621_Tab[0] ^= 0x08;
+    }   
+    Ht1621WrOneData(0, Ht1621_Tab[0]);
 }
 
 /**
@@ -233,10 +250,19 @@ void Display_PM2_5_Ico(void)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_CO2_Ico(void)
+void Display_CO2_Ico(bool sw)
 {
-    //Ht1621WrOneData(6, Ht1621Tab6[level]);
-    //Ht1621WrOneData(7, Ht1621Tab7[level]);           
+    //Ht1621WrOneData(8, 0x08);  
+    if(sw)
+    {
+        Ht1621_Tab[8] |= 0x08;
+    }
+    else
+    {
+        Ht1621_Tab[8] |= 0x08;
+        Ht1621_Tab[8] ^= 0x08;
+    }   
+    Ht1621WrOneData(8, Ht1621_Tab[8]);            
 }
 
 /**
@@ -246,10 +272,45 @@ void Display_CO2_Ico(void)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_Fan_Ico(void)
+void Display_Fan_Ico(bool sw)
 {
-    //Ht1621WrOneData(6, Ht1621Tab6[level]);
-    //Ht1621WrOneData(7, Ht1621Tab7[level]);           
+    if(sw)
+    {
+        Ht1621_Tab[6] |= 0x07;
+    }
+    else
+    {
+        Ht1621_Tab[6] |= 0x07;
+        Ht1621_Tab[6] ^= 0x07;
+    }   
+    Ht1621WrOneData(6, Ht1621_Tab[6]);          
+}
+
+/**
+* @Function ：显示风量等级
+* @brief    ：
+* @input    ：-level 风量等级。1为睡眠，2为和风，3为强风 
+* @output   ：None
+* @retval   ：None
+**/
+void Display_WindLevel(uint8_t level)
+{
+    switch(level)
+    {
+        case 1: 
+            Ht1621_Tab[7] |= 0x07;
+            Ht1621_Tab[7] ^= 0x03;
+        break;
+        case 2: 
+            Ht1621_Tab[7] |= 0x07;
+            Ht1621_Tab[7] ^= 0x05;
+        break;
+        case 3: 
+            Ht1621_Tab[7] |= 0x07;
+            Ht1621_Tab[7] ^= 0x06;
+        break;
+    }
+    Ht1621WrOneData(7, Ht1621_Tab[7]);          
 }
 
 /**
@@ -293,8 +354,20 @@ void Display_PM2_5_value(uint16_t value)
     ten = value / 10 % 10;
     one = value % 10;
 
-    Ht1621WrOneData(0, Ht1621Tab4[hun]);
-    Ht1621WrOneData(1, Ht1621Tab5[hun]);
+    Ht1621_Tab[0] |= 0x07;
+    Ht1621_Tab[0] ^= Ht1621_Tube[hun];
+    Ht1621_Tab[1] = Ht1621_Tube[hun];
+
+    Ht1621WrOneData(0, Ht1621_Tab[0]);          
+    Ht1621WrOneData(1, Ht1621_Tab[1]);   
+
+
+
+    Ht1621WrOneData(2, Ht1621_Tab[2]);          
+    Ht1621WrOneData(3, Ht1621_Tab[3]); 
+
+    Ht1621WrOneData(4, Ht1621_Tab[4]);          
+    Ht1621WrOneData(5, Ht1621_Tab[5]); 
 
 }
 
