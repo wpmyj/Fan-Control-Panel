@@ -37,53 +37,13 @@ sbit HT1621_WR  = P2^1;   // - - HT1621时钟引脚
 sbit HT1621_DAT = P2^2;   // - - HT1621数据引脚
 
 
-
-
 /* 功能描述:LCD清屏数组 */
 uint8_t code Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
-
-/********************************************************
-数组名称：Ht1621Tab1 / Ht1621Tab2            
-功能描述: T1（自动）T2（手动）T3(更换)不需要显示时数码管的控制
-********************************************************/
-uint8_t code Ht1621Tab1[]={0x05,0x00,0x06,0x02,0x03,0x03,0x07,0x00,0x07,0x03};
-		            	//0	   1	 2	  3	   4	5	6	 7	  8	   9
-uint8_t code Ht1621Tab2[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
-					    //0    1	 2	  3	   4	5	6	 7	  8	   9
-/********************************************************
-数组名称：Ht1621Tab3            
-功能描述:开机显示T4.T5
-********************************************************/
-uint8_t code Ht1621Tab3[]={0x08};	
-/********************************************************
-数组名称：Ht1621Tab4 / Ht1621Tab5            
-功能描述: T1（自动）T2（手动）T3(更换) 	T4 T5 需要显示时数码管的控制 
-数码管1 4必须使用该两个数组
-********************************************************/
-uint8_t code Ht1621Tab4[]={0x0D,0x08,0x0E,0x0A,0x0B,0x0B,0x0F,0x08,0x0F,0x0B};
-			            //0	   1	 2	  3	   4	5	6	 7	  8	   9
-uint8_t code Ht1621Tab5[]={0x0f,0x06,0x0b,0x0f,0x06,0x0d,0x0d,0x07,0x0f,0x0f};                          
-					    //0    1	 2	  3	   4	5	6	 7	  8	   9
-/********************************************************
-数组名称：Ht1621Tab6 / Ht1621Tab7            
-功能描述: 外循环--强风/和风/睡眠
-          内循环--强风/和风/睡眠) 
-********************************************************/
-uint8_t code Ht1621Tab6[]={0X00,0x01,0x03,0x07,};	
-			   //外循环	      睡眠 和风 强风
-uint8_t code Ht1621Tab7[]={0x00,0x0C,0x0A,0x09,};
-               //外循环	      睡眠 和风 强风
-uint8_t code Ht1621Tab8[]={0X00,0x09,0x0B,0x0F,};	
-			   //内循环	      睡眠 和风 强风
-uint8_t code Ht1621Tab9[]={0x00,0x04,0x02,0x01,};
-               //内循环	      睡眠 和风 强风
-
-uint8_t code Ht1621_Tube[]={0x05,0x04,0x02,0x01,};  //0 1 2 3 4 5 6 7 8 9
+uint8_t code Ht1621_Tube_1[]={0x05,0x00,0x06,0x02,0x03,0x03,0x07,0x00,0x07,0x03};  //0 1 2 3 4 5 6 7 8 9
+uint8_t code Ht1621_Tube_2[]={0x0F,0x06,0x0B,0x0F,0x06,0x0D,0x0D,0x07,0x0F,0x0F};  //0 1 2 3 4 5 6 7 8 9
 
 uint8_t Ht1621_Tab[16] = {0x00};
-
-uint8_t T3 = 0x08;
 
 
 /**
@@ -322,8 +282,8 @@ void Display_WindLevel(uint8_t level)
 **/
 void Display_Ex_WindLevel(uint8_t level)
 {
-    Ht1621WrOneData(6, Ht1621Tab6[level]);
-    Ht1621WrOneData(7, Ht1621Tab7[level]);           
+    // Ht1621WrOneData(6, Ht1621Tab6[level]);
+    // Ht1621WrOneData(7, Ht1621Tab7[level]);           
 }
 
 /**
@@ -335,8 +295,8 @@ void Display_Ex_WindLevel(uint8_t level)
 **/
 void Display_In_WindLevel(uint8_t level)
 {
-    Ht1621WrOneData(6, Ht1621Tab8[level]);
-    Ht1621WrOneData(7, Ht1621Tab9[level]);           
+    // Ht1621WrOneData(6, Ht1621Tab8[level]);
+    // Ht1621WrOneData(7, Ht1621Tab9[level]);           
 }
 
 /**
@@ -355,20 +315,22 @@ void Display_PM2_5_value(uint16_t value)
     one = value % 10;
 
     Ht1621_Tab[0] |= 0x07;
-    Ht1621_Tab[0] ^= Ht1621_Tube[hun];
-    Ht1621_Tab[1] = Ht1621_Tube[hun];
-
+    Ht1621_Tab[0] ^= Ht1621_Tube_1[hun];
+    Ht1621_Tab[1] = Ht1621_Tube_2[hun];
     Ht1621WrOneData(0, Ht1621_Tab[0]);          
     Ht1621WrOneData(1, Ht1621_Tab[1]);   
 
-
-
+    Ht1621_Tab[2] |= 0x07;
+    Ht1621_Tab[2] ^= Ht1621_Tube_1[ten];
+    Ht1621_Tab[3] = Ht1621_Tube_2[ten];
     Ht1621WrOneData(2, Ht1621_Tab[2]);          
     Ht1621WrOneData(3, Ht1621_Tab[3]); 
 
+    Ht1621_Tab[4] |= 0x07;
+    Ht1621_Tab[4] ^= Ht1621_Tube_1[one];
+    Ht1621_Tab[5] = Ht1621_Tube_2[one];
     Ht1621WrOneData(4, Ht1621_Tab[4]);          
     Ht1621WrOneData(5, Ht1621_Tab[5]); 
-
 }
 
 /**
@@ -380,15 +342,36 @@ void Display_PM2_5_value(uint16_t value)
 **/
 void Display_CO2_value(uint16_t value)
 {
-    uint8_t ths,hun, ten, one;
+    uint8_t ths, hun, ten, one;
 
     ths = value / 1000 % 10;
     hun = value / 100 % 10;
     ten = value / 10 % 10;
     one = value % 10;
 
-    Ht1621WrOneData(0, Ht1621Tab4[hun]);
-    Ht1621WrOneData(1, Ht1621Tab5[hun]);
+    Ht1621_Tab[8] |= 0x07;
+    Ht1621_Tab[8] ^= Ht1621_Tube_1[ths];
+    Ht1621_Tab[9] = Ht1621_Tube_2[ths];
+    Ht1621WrOneData(8, Ht1621_Tab[8]);          
+    Ht1621WrOneData(9, Ht1621_Tab[9]);  
+
+    Ht1621_Tab[10] |= 0x07;
+    Ht1621_Tab[10] ^= Ht1621_Tube_1[hun];
+    Ht1621_Tab[11] = Ht1621_Tube_2[hun];
+    Ht1621WrOneData(10, Ht1621_Tab[10]);          
+    Ht1621WrOneData(11, Ht1621_Tab[11]);   
+
+    Ht1621_Tab[12] |= 0x07;
+    Ht1621_Tab[12] ^= Ht1621_Tube_1[ten];
+    Ht1621_Tab[13] = Ht1621_Tube_2[ten];
+    Ht1621WrOneData(12, Ht1621_Tab[12]);          
+    Ht1621WrOneData(13, Ht1621_Tab[13]); 
+
+    Ht1621_Tab[14] |= 0x07;
+    Ht1621_Tab[14] ^= Ht1621_Tube_1[one];
+    Ht1621_Tab[15] = Ht1621_Tube_2[one];
+    Ht1621WrOneData(14, Ht1621_Tab[14]);          
+    Ht1621WrOneData(15, Ht1621_Tab[15]); 
 
 }
 

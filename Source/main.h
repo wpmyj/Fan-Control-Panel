@@ -55,6 +55,9 @@ sbit Con_BackLight      = P3^3;         //背光
 sbit Con_Beep           = P2^7;         //蜂鸣器
 
 
+#define BL_ON       Con_BackLight = 0
+#define BL_OFF      Con_BackLight = 1
+
 
 #endif
 

@@ -80,16 +80,16 @@ void Open_Init(void)
 	Status_WindModel = EXTER; 
 	Wind_Level = 3;
 
-	Display_PM2_5_Ico();
-    Display_CO2_Ico();
-    Display_Fan_Ico();
+	Display_PM2_5_Ico(TRUE);
+    Display_CO2_Ico(TRUE);
+    Display_Fan_Ico(TRUE);
 	Display_Exter_Ico(TRUE);
 	//Display_Inter_Ico(FLASE);
 	Display_Auto_Ico(TRUE);
 	//Display_Manual_Ico(FLASE);	
-	Display_Ex_WindLevel(Wind_Level);
+	Display_WindLevel(Wind_Level);
 
-	Con_BackLight = 0;		//开背光
+	BL_ON;		//开背光
 }
 
 
@@ -130,7 +130,7 @@ void Check_Switch_Key(void)
 			else
 			{
 				Display_Clear();
-				Con_BackLight = 1;		//关背光
+				BL_OFF;		//关背光
 			}
 			Status_Switch = ~Status_Switch;
 
@@ -337,14 +337,8 @@ void Check_WindUp_Key(void)
 				}
 			}
 
-			if(Status_WindModel == EXTER)
-			{
-				Display_Ex_WindLevel(Wind_Level);
-			}
-			else
-			{
-				Display_In_WindLevel(Wind_Level);
-			}
+
+			Display_WindLevel(Wind_Level);
 
 	   	}
 	}
@@ -407,14 +401,9 @@ void Check_WindDown_Key(void)
 				}
 			}
 
-			if(Status_WindModel == EXTER)
-			{
-				Display_Ex_WindLevel(Wind_Level);
-			}
-			else
-			{
-				Display_In_WindLevel(Wind_Level);
-			}
+
+			Display_WindLevel(Wind_Level);
+
 	   	}
 	}
 }

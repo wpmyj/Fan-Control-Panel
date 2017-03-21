@@ -3,5 +3,6 @@ Listing/
 Output/
 
 *.txt
+*.uvopt
 *.uvgui.*
 sh.exe.stackdump
