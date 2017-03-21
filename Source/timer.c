@@ -99,7 +99,28 @@ void Timer_Init(void)
 }
 
 
+/**
+* @Function ：us延时子程序
+* @brief    ：
+* @input    ：xus：xus * 10 延时微秒 
+* @output   ：None
+* @retval   ：None
+**/
+void Delay_x_10us(uint16_t xus)
+{ 
+    uint8_t i;
+    uint16_t u16;
+    
+	for(u16 = 0; u16 < xus; u16++)
+	{
+        _nop_();
+        _nop_();
+        _nop_();
+        i = 24;
+        while (--i);
+    }
 
+}
 
 /**
 * @Function ：10us延时子程序
