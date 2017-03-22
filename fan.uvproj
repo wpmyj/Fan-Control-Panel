@@ -388,6 +388,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\timer.c</FilePath>
             </File>
+            <File>
+              <FileName>ds18b20.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ds18b20.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

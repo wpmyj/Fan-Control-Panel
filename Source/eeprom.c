@@ -14,6 +14,7 @@
 #include "main.h"
 #include "eeprom.h"
 #include "intrins.h"
+#include "timer.h"
 
 sbit SDA = P2^5;    //24C02数据端口
 sbit SCL = P2^6;    //24C02时钟端口
@@ -29,6 +30,10 @@ void delay(void)
 {
 	_nop_();
 	_nop_();
+	_nop_();
+	_nop_();
+	_nop_();
+	
 }
 
 /**
@@ -46,6 +51,7 @@ void start(void)
 	delay();
 	SDA=0;
 	delay();
+	SCL=0;
 }
 
 /**
@@ -63,6 +69,7 @@ void stop(void)
 	delay();
 	SDA=1;
 	delay();
+	SCL=0;
 }
 
 /**
@@ -70,19 +77,25 @@ void stop(void)
 * @brief    ：
 * @input    ：None 
 * @output   ：None
-* @retval   ：None
+* @retval   ：是否应答成功
 **/
-void respons(void)
+bool respons(void)
 {
 	uint8_t i;
 	SCL = 1;
 	delay();
-	while((SDA == 1)&&(i < 250))
+	while(SDA)
 	{
+		delay();		
 		i++;
+		if(i > 250)
+		{
+			return FLASE;
+		}
 	}
 	SCL = 0;
 	delay();
+	return TRUE;
 }
 
 /**
@@ -163,16 +176,26 @@ uint8_t read_byte(void)
 * @output   ：None
 * @retval   ：None
 **/
-void Eeprom_Write_Add(uint8_t address, uint8_t date)
+bool Eeprom_Write_Add(uint8_t address, uint8_t date)
 {
 	start();
 	write_byte(0xae);
-	respons();
+	if(!respons())
+	{
+		return FLASE;
+	}
 	write_byte(address);
-	respons();
+	if(!respons())
+	{
+		return FLASE;
+	}
 	write_byte(date);
-	respons();
+	if(!respons())
+	{
+		return FLASE;
+	}
 	stop();
+	return TRUE;
 }
 
 /**
@@ -180,7 +203,7 @@ void Eeprom_Write_Add(uint8_t address, uint8_t date)
 * @brief    ：
 * @input    ：adress ：地址 
 * @output   ：None
-* @retval   ：数据
+* @retval   ：数据，0xff为读取失败
 **/
 uint8_t Eeprom_Read_Add(uint8_t adress)
 {
@@ -188,12 +211,21 @@ uint8_t Eeprom_Read_Add(uint8_t adress)
 
 	start();
 	write_byte(0xae);
-	respons();
+	if(!respons())
+	{
+		return 0xff;
+	}
 	write_byte(adress);
-	respons();
+	if(!respons())
+	{
+		return 0xff;
+	}
 	start();
 	write_byte(0xaf);
-	respons();
+	if(!respons())
+	{
+		return 0xff;
+	}
 	date = read_byte();
 	stop();
 	return date;

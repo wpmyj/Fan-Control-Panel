@@ -12,53 +12,82 @@
 *******************************************************************************/ 
 
 #include "main.h"
+#include "timer.h"
+#include "ds18b20.h"
+#include "intrins.h"
 
 
 sbit DQ = P2^1;
 
-
-uint16_t temper_change()
+/**
+* @Function ：数据转换为温度
+* @brief    ：
+* @input    ：None
+* @output   ：None
+* @retval   ：温度，摄氏度
+**/
+uint16_t DS18B20_Temper_Convert(uint16_t temper)
 {
-    uint temper;
     float tp;
-    temper=temper_read();
-    if(temper<0)    //考虑负温度的情况
+    if(temper < 0)    //考虑负温度的情况
     {
-       temper=temper-1;
-       temp=~temp;
-       tp=temper*0.0625;  //16位温度转换成10进制的温度
-       temper=tp*100+0.5;   //留两个小数点，并四舍五入
+       temper = temper - 1;
+       temper =~ temper;
+       tp = temper * 0.0625;        //16位温度转换成10进制的温度
+       temper = tp * 100 + 0.5;     //留两个小数点，并四舍五入
     }
     else
     {
-    tp=temper*0.0625;  //16位温度转换成10进制的温度
-    temper=tp*100+0.5;  //留两个小数点，并四舍五入
+        tp = temper * 0.0625;  //16位温度转换成10进制的温度
+        temper = tp * 100 + 0.5;  //留两个小数点，并四舍五入
     }
     return temper;
 }
 
-uint read_temper ()
+/**
+* @Function ：读出当前温度
+* @brief    ：
+* @input    ：None
+* @output   ：None
+* @retval   ：读出的温度，0xffff为读取失败
+**/
+uint16_t DS18B20_Get_Temper(void)
 {    
-   uchar a,b;         
-   uint t=0;
-   DS18B20_init();       
-   delay_us(15);
-   write_byte(0xcc);   //跳过ROM操作命令
-   write_byte(0x44);     //发送启动温度转换命令
-   DS18B20_init();       
-   delay_us(15);
-   write_byte(0xcc);    //跳过ROM操作命令
-   write_byte(0xbe);      //发送读温度寄存器命令
-   a=read_byte();    //先读低八位
-   b=read_byte();      //再读高八位
-   t=b;        
-   t<<=8;      //左移八位
-   t=t|a;      //t为16位的数，使高八位为b的值，低八位为a的值  
-   return t;    //返回温度值
+    uint8_t a, b;         
+    uint16_t t = 0;    
+    if(!DS18B20_init())
+    {
+        return 0xffff;
+    }
+    Delay_10us();
+    DS18B20_Write_Byte(0xcc);   //跳过ROM操作命令
+    DS18B20_Write_Byte(0x44);     //发送启动温度转换命令
+    if(!DS18B20_init())
+    {
+        return 0xffff;
+    }     
+    Delay_10us();
+    DS18B20_Write_Byte(0xcc);    //跳过ROM操作命令
+    DS18B20_Write_Byte(0xbe);      //发送读温度寄存器命令
+    a = DS18B20_Read_Byte();    //先读低八位
+    b = DS18B20_Read_Byte();      //再读高八位
+    t = b;        
+    t <<= 8;      //左移八位
+    t = t|a;      //t为16位的数，使高八位为b的值，低八位为a的值  
+    
+    t = DS18B20_Temper_Convert(t);
+
+    return t;    //返回温度值
 }
 
-
-uint8_t DS18B20_Read_Byte(void)    //读一个字节
+/**
+* @Function ：DS18B20读出一个字节
+* @brief    ：
+* @input    ：None
+* @output   ：None
+* @retval   ：读出的数据
+**/
+uint8_t DS18B20_Read_Byte(void)
 {
     uint8_t i, dat = 0;
 
@@ -71,10 +100,10 @@ uint8_t DS18B20_Read_Byte(void)    //读一个字节
         _nop_();_nop_();
         if(DQ)
         {
-            dat=dat|0x80;   //每次读一位
+            dat = dat | 0x80;   //每次读一位
         }
-        dat=dat>>1;       //从最低位开始读
-        delay_us(10);   //读取完之后等待48us再接着读取下一个数
+        dat = dat >> 1;       //从最低位开始读
+        Delay_x_10us(5);   //读取完之后等待48us再接着读取下一个数
     }
     return dat;
 }
@@ -86,7 +115,7 @@ uint8_t DS18B20_Read_Byte(void)    //读一个字节
 * @output   ：None
 * @retval   ：None
 **/
-void DS18B20_Write_Byte(uint8_t dat)   //写一个字节
+void DS18B20_Write_Byte(uint8_t dat)
 {
     uint8_t i;
     for(i = 0; i < 8; i++)
@@ -111,21 +140,22 @@ void DS18B20_Write_Byte(uint8_t dat)   //写一个字节
 **/
 bool DS18B20_init(void)
 {
-       DQ = 1;
-       Delay_10us();     //稍作延时
-       DQ = 0;
-       Delay_x_10us(80);    //延时80*10-800us,在480到960us之间
-       DQ = 1;
-       i = 0;
-       while(DQ)    //等待DS18B20拉低总线
-       {
-           Delay_x_10us(100);
-           i++;
-           if(i > 5)            //约等待>5MS
-           {
-               return FLASE;    //初始化失败
-           }    
-       }
-       return TRUE;
+    uint8_t i;
+    DQ = 1;
+    Delay_10us();     //稍作延时
+    DQ = 0;
+    Delay_x_10us(80);    //延时80*10-800us,在480到960us之间
+    DQ = 1;
+    i = 0;
+    while(DQ)    //等待DS18B20拉低总线
+    {
+        Delay_x_10us(100);
+        i++;
+        if(i > 5)            //约等待>5MS
+        {
+            return FLASE;    //初始化失败
+        }    
+    }
+    return TRUE;
 }
 

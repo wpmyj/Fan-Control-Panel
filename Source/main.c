@@ -17,7 +17,7 @@
 #include "eeprom.h"
 #include "display.h"
 #include "timer.h"
-
+#include "ds18b20.h"
 
 bool Status_Change = TRUE;       	//状态刷新位，TRUE:刷新，FLASE：保持
 
@@ -274,7 +274,9 @@ void Check_Filte_Key(void)
 						Filte_RunTime_Day = 0;
 						Filte_RunTime_Mon = 0;
 						Eeprom_Write_Add(HOUR_ADDRESS, Filte_RunTime_Hour);
+						Delay_ms(100);						
 						Eeprom_Write_Add(DAY_ADDRESS, Filte_RunTime_Day);
+						Delay_ms(100);												
 						Eeprom_Write_Add(MON_ADDRESS, Filte_RunTime_Mon);
 						Status_Filte = NORMAL;		//切换滤网正常状态
 						Display_Filte_Ico(FLASE);
@@ -471,7 +473,9 @@ void Filte_Update(void)
 			}
 		}
 		Eeprom_Write_Add(HOUR_ADDRESS, Filte_RunTime_Hour);
+		Delay_ms(100);								
 		Eeprom_Write_Add(DAY_ADDRESS, Filte_RunTime_Day);
+		Delay_ms(100);								
 		Eeprom_Write_Add(MON_ADDRESS, Filte_RunTime_Mon);
 	}
 }
@@ -549,30 +553,45 @@ void Send_Status_Drive(void)
 void main()
 {
 
-	uint8_t Temp1 = 0x01;
-	uint8_t Temp2 = 0x00;
+	// uint8_t Temp1 = 0x01;
+	// uint8_t Temp2 = 0x00;
 
 	Uart_1_Init();
-    Uart_2_Init();
-	Uart_vir_Init();
-	Timer_Init();
+    // Uart_2_Init();
+	// Uart_vir_Init();
+	// Timer_Init();
 
 	EA = 1;
 
+	Eeprom_Init();
 
-	Uart_1_SendString("STC12C5A60S2\r\nUart_1 Test !\r\n");
+	Eeprom_Write_Add(HOUR_ADDRESS, 0xCC);
+Delay_ms(100);
+	Eeprom_Write_Add(DAY_ADDRESS, 0XBB);
+Delay_ms(100);
+	Eeprom_Write_Add(MON_ADDRESS, 0XAA);
+Delay_ms(1000);
+	//Uart_1_SendString("STC12C5A60S2\r\nUart_1 Test !\r\n");
     //Uart_2_SendString("STC12C5A60S2\r\nUart_2 Test !\r\n");
+	Uart_1_SendByte(0xff);
 
+
+	Filte_RunTime_Hour = Eeprom_Read_Add(HOUR_ADDRESS);
+	Filte_RunTime_Day = Eeprom_Read_Add(DAY_ADDRESS);
+	Filte_RunTime_Mon = Eeprom_Read_Add(MON_ADDRESS);
+	Uart_1_SendByte(Filte_RunTime_Hour);
+	Uart_1_SendByte(Filte_RunTime_Day);
+	Uart_1_SendByte(Filte_RunTime_Mon);
 
 	while(1)
 	{
-		Temp1 = Temp1 ^ 0x08;
-		Uart_2_SendByte(Temp1);
-		Delay_ms(1000);
-		Con_BackLight = ~ Con_BackLight;
-		Temp1 = Temp1 ^ 0x08;
-		Uart_2_SendByte(Temp1);
-
+		// Temp1 = Temp1 ^ 0x08;
+		// Uart_2_SendByte(Temp1);
+		// Delay_ms(1000);
+		// Con_BackLight = ~ Con_BackLight;
+		// Temp1 = Temp1 ^ 0x08;
+		// Uart_2_SendByte(Temp1);
+;
 
 	}
 
