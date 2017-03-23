@@ -17,7 +17,7 @@
 #include "eeprom.h"
 #include "display.h"
 #include "timer.h"
-#include "ds18b20.h"
+
 
 bool Status_Change = TRUE;       	//状态刷新位，TRUE:刷新，FLASE：保持
 
@@ -43,7 +43,13 @@ uint8_t Temp_Ex_Value = 6;
 uint8_t Temp_In_Value = 6; 
 
 extern uint8_t Time_Base_1M, Time_Base_Model_1M;
-extern bool Ico_Flash_flg, Send_Status_flg, Update_Sensor_flg, Auto_Timer_flg;
+extern bool Ico_Flash_flg;
+extern bool Update_Sensor_flg;
+extern bool Auto_Timer_flg;
+extern bool Send_Status_flg;
+extern bool respons_flg;
+extern bool send_respons;
+
 //extern uint8_t Temp_Value;
 
 /**
@@ -133,7 +139,7 @@ void Check_Switch_Key(void)
 				BL_OFF;		//关背光
 			}
 			Status_Switch = ~Status_Switch;
-
+			SEND_STATUS;
 	   	}
 	}
 }
@@ -192,7 +198,7 @@ void Check_RunModel_Key(void)
 			}
 
 			Status_RunModel = ~Status_RunModel;
-
+			SEND_STATUS;
 		}	
 	}
 }
@@ -240,7 +246,7 @@ void Check_WindModel_Key(void)
 			}
 
 			Status_WindModel = ~Status_WindModel;
-
+			SEND_STATUS;
 		}
 	}
 }
@@ -280,7 +286,8 @@ void Check_Filte_Key(void)
 						Eeprom_Write_Add(MON_ADDRESS, Filte_RunTime_Mon);
 						Status_Filte = NORMAL;		//切换滤网正常状态
 						Display_Filte_Ico(FLASE);
-						Status_FilteIco = ON;	
+						Status_FilteIco = ON;
+						SEND_STATUS;	
 					}
 					return;
 		    	}
@@ -339,9 +346,8 @@ void Check_WindUp_Key(void)
 				}
 			}
 
-
 			Display_WindLevel(Wind_Level);
-
+			SEND_STATUS;
 	   	}
 	}
 }
@@ -403,9 +409,8 @@ void Check_WindDown_Key(void)
 				}
 			}
 
-
 			Display_WindLevel(Wind_Level);
-
+			SEND_STATUS;
 	   	}
 	}
 }
@@ -469,7 +474,7 @@ void Filte_Update(void)
 					Display_Filte_Ico(TRUE);
 					Status_FilteIco = ON;					
 				}
-
+				SEND_STATUS;
 			}
 		}
 		Eeprom_Write_Add(HOUR_ADDRESS, Filte_RunTime_Hour);
@@ -504,7 +509,7 @@ void Send_Com_CO2(void)
 }
 
 /**
-* @Function ：发送当前状态到控制板单片机
+* @Function ：发送当前状态到驱动板
 * @brief    ：
 * @input    ：None 
 * @output   ：None
@@ -513,7 +518,7 @@ void Send_Com_CO2(void)
 void Send_Status_Drive(void)
 {
 	uint8_t i;
-	uint8_t buff[16];
+	uint8_t buff[17];
 
 	// #ifdef  LOGGER
 	// 	Uart_1_SendString(" \r\n Send_Status_Drive.");
@@ -521,22 +526,53 @@ void Send_Status_Drive(void)
 
 	buff[0] = 0xAA;
 	buff[1] = 0x00;
-	buff[2] = Status_Switch;
-	buff[3] = Status_RunModel;
-	buff[4] = Status_WindModel;
-	buff[5] = Status_Filte;
-	buff[6] = Wind_Level;
-	buff[7] = PM25_Value >> 8;
-	buff[8] = PM25_Value;
-	buff[9] = CO2_Value >> 8;
-	buff[10] = CO2_Value;
-	buff[11] = Temp_Ex_Value;
-	buff[12] = Temp_In_Value;
-	buff[13] = 0x00;
-	buff[14] = 0xFF;
-	buff[15] = 0x55;
+	buff[2] = 0xBA;
+	buff[3] = Status_Switch;
+	buff[4] = Status_RunModel;
+	buff[5] = Status_WindModel;
+	buff[6] = Status_Filte;
+	buff[7] = Wind_Level;
+	buff[8] = PM25_Value >> 8;
+	buff[9] = PM25_Value;
+	buff[10] = CO2_Value >> 8;
+	buff[11] = CO2_Value;
+	buff[12] = Temp_Ex_Value;
+	buff[13] = Temp_In_Value;
+	buff[14] = 0x00;
+	buff[15] = 0xFF;
+	buff[16] = 0x55;
 
-	for(i = 0; i < 16; i++)
+	for(i = 0; i < 17; i++)
+	{
+		Uart_2_SendByte(buff[i]);
+	}
+
+}
+
+/**
+* @Function ：发送回应包
+* @brief    ：
+* @input    ：None 
+* @output   ：None
+* @retval   ：None
+**/
+void Send_Respons_Drive(void)
+{
+	uint8_t i;
+	uint8_t buff[6];
+
+	// #ifdef  LOGGER
+	// 	Uart_1_SendString(" \r\n Send_Status_Drive.");
+	// #endif	
+
+	buff[0] = 0xAA;
+	buff[1] = 0x00;
+	buff[2] = 0xAB;
+	buff[3] = 0x00;
+	buff[4] = 0xFF;
+	buff[5] = 0x55;
+
+	for(i = 0; i < 6; i++)
 	{
 		Uart_2_SendByte(buff[i]);
 	}
@@ -552,84 +588,22 @@ void Send_Status_Drive(void)
 **/
 void main()
 {
-
-	// uint8_t Temp1 = 0x01;
-	// uint8_t Temp2 = 0x00;
-
 	Uart_1_Init();
-    // Uart_2_Init();
-	// Uart_vir_Init();
-	// Timer_Init();
+    Uart_2_Init();
+	Uart_vir_Init();
+	Timer_Init();
 
 	EA = 1;
 
 	Eeprom_Init();
 
-	Eeprom_Write_Add(HOUR_ADDRESS, 0xCC);
-Delay_ms(100);
-	Eeprom_Write_Add(DAY_ADDRESS, 0XBB);
-Delay_ms(100);
-	Eeprom_Write_Add(MON_ADDRESS, 0XAA);
-Delay_ms(1000);
+
 	//Uart_1_SendString("STC12C5A60S2\r\nUart_1 Test !\r\n");
     //Uart_2_SendString("STC12C5A60S2\r\nUart_2 Test !\r\n");
-	Uart_1_SendByte(0xff);
 
 
-	Filte_RunTime_Hour = Eeprom_Read_Add(HOUR_ADDRESS);
-	Filte_RunTime_Day = Eeprom_Read_Add(DAY_ADDRESS);
-	Filte_RunTime_Mon = Eeprom_Read_Add(MON_ADDRESS);
-	Uart_1_SendByte(Filte_RunTime_Hour);
-	Uart_1_SendByte(Filte_RunTime_Day);
-	Uart_1_SendByte(Filte_RunTime_Mon);
-
-	while(1)
+    while(1)
 	{
-		// Temp1 = Temp1 ^ 0x08;
-		// Uart_2_SendByte(Temp1);
-		// Delay_ms(1000);
-		// Con_BackLight = ~ Con_BackLight;
-		// Temp1 = Temp1 ^ 0x08;
-		// Uart_2_SendByte(Temp1);
-;
-
-	}
-
-
-/*	while(1)
-	{
-		Uart_vir_Main();
-		//Delay_ms(1000);
-		// if(Temp_Value != 0)
-		// {
-		// 	Uart_2_SendByte(Temp_Value);
-		// 	Temp_Value = 0;
-		// }
-
-		if(Status_WindModel == MANUAL)
-		{
-			Status_WindModel = AUTO;
-			Con_BackLight = ~ Con_BackLight;
-		}
-		// Uart_1_SendByte(CO2_Value >> 8);
-		// Uart_1_SendByte(CO2_Value);
-		// Uart_2_SendByte(PM25_Value>>8);
-		// Uart_2_SendByte(PM25_Value);
-		if(Ico_Flash_flg == OFF)
-		{
-			Ico_Flash_flg = ON;
-			Con_BackLight = ~ Con_BackLight;
-		}
-
-		//Uart_2_SendByte(Time_Base_1M);
-		
-	}*/
-
-/*    while(1)
-	{
-
-
-
 		Check_Switch_Key();
 		if(Status_Switch == ON)
 		{
@@ -646,7 +620,10 @@ Delay_ms(1000);
 			if(Send_Status_flg == OFF)
 			{
 				Send_Status_flg = ON;
-				Send_Status_Drive();
+				if(respons_flg == OFF)
+				{				
+					Send_Status_Drive();	//若无返回，每秒重发1次
+				}
 				Send_Com_CO2();
 			}
 
@@ -657,6 +634,11 @@ Delay_ms(1000);
 				Display_CO2_value(CO2_Value);
             }
 
+			if(send_respons == ON)
+			{
+				send_respons = OFF;
+				Send_Respons_Drive();
+			}
 
 			if(Status_RunModel == AUTO)
 			{
@@ -667,6 +649,7 @@ Delay_ms(1000);
 						Status_WindModel = EXTER;
 						Time_Base_Model_1M = 0;
 						//Auto_Timer_flg = ON;
+						SEND_STATUS;						
 					}
 					if(PM25_Value < 50)
 					{
@@ -683,6 +666,7 @@ Delay_ms(1000);
 							Status_WindModel = INTER;
 							Time_Base_Model_1M = 0;
 							Auto_Timer_flg = OFF;
+							SEND_STATUS;												
 						}
 						else
 						{
@@ -693,7 +677,7 @@ Delay_ms(1000);
 				}
 			}
 		}
-	}*/
+	}
 
 }
 

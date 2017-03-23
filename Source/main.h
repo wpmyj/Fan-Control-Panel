@@ -57,7 +57,7 @@ sbit Con_Beep           = P2^7;         //蜂鸣器
 
 #define BL_ON       Con_BackLight = 0
 #define BL_OFF      Con_BackLight = 1
-
+#define SEND_STATUS respons_flg = OFF						
 
 #endif
 

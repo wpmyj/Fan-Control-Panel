@@ -29,8 +29,8 @@ bit TEND,REND;
 
 bool Uart_1_TX_Busy;
 bool Uart_2_TX_Busy;
-// uint8_t t, r;
-
+bool respons_flg = OFF;
+bool send_respons = OFF;
 
 // uint8_t RX_1_buf[RX_1_BUF_SIZE];
 // uint8_t RX_2_buf[RX_2_BUF_SIZE];
@@ -50,7 +50,6 @@ extern uint8_t Status_Filte;      //滤网当前状态位
 
 extern uint8_t Wind_Level;      		//风量大小变量，范围：1-3
 
-
 extern uint8_t Filte_RunTime_Hour;		//滤网运行时间，小时
 extern uint8_t Filte_RunTime_Day;		//滤网运行时间，天
 extern uint8_t Filte_RunTime_Mon;		//滤网运行时间，月
@@ -60,7 +59,6 @@ extern uint16_t CO2_Value;
 extern uint8_t Temp_Ex_Value; 
 extern uint8_t Temp_In_Value; 
 
-//uint8_t Temp_Value;
 
 /**
 * @Function ：模拟串口主函数
@@ -83,32 +81,45 @@ void Uart_vir_Main(void)
         {
             if(Uart_vir_cnt == 3)
             {
-                Status_Switch = temp;
+                if(temp == 0xAB)    //回应包
+                {
+                    respons_flg = ON;
+                    return;
+                }
+                else
+                {
+                    send_respons = ON;
+                }
             }
             else if(Uart_vir_cnt == 4)
             {
-                Status_RunModel = temp;             
+                Status_Switch = temp;
             }
             else if(Uart_vir_cnt == 5)
             {
-                Status_WindModel = temp;             
+                Status_RunModel = temp;             
             }
             else if(Uart_vir_cnt == 6)
             {
+                Status_WindModel = temp;             
+            }
+            else if(Uart_vir_cnt == 7)
+            {
                 Status_Filte = temp;             
             }  
-            else if(Uart_vir_cnt == 7)
+            else if(Uart_vir_cnt == 8)
             {
                 Wind_Level = temp;             
             }            
-            else if(Uart_vir_cnt == 12)
+            else if(Uart_vir_cnt == 13)
             {
                 Temp_Ex_Value = temp;             
             }  
-            else if(Uart_vir_cnt == 13)
+            else if(Uart_vir_cnt == 14)
             {
                 Temp_In_Value = temp;
-                Uart_vir_cnt = 0;             
+                Uart_vir_cnt = 0;    
+                return;         
             }        
             Uart_vir_cnt++;     
         }
@@ -287,7 +298,8 @@ void Uart_1_Isr(void) interrupt 4 using 1
             else if(Uart_1_cnt == 3)
             {
                 CO2_Value = value * 256 + temp;
-                Uart_1_cnt = 0;                
+                Uart_1_cnt = 0;      
+                return;          
             }
             Uart_1_cnt++;
         }
@@ -396,7 +408,8 @@ void Uart_2_Isr(void) interrupt 8 using 1
             else if(Uart_2_cnt == 7)
             {
                 PM25_Value = value * 256 + temp;
-                Uart_2_cnt = 0;                
+                Uart_2_cnt = 0;   
+                return;             
             }
             Uart_2_cnt++;
         }
