@@ -2,7 +2,7 @@
 * @file    ds18b20.c
 * @author  xxc
 * @version V1.0
-* @date    2017-03-21
+* @date    2017-03-24
 * @brief   DS18B20传感器函数
 ******************************************************************************
 * @attention
@@ -17,8 +17,8 @@
 #include "intrins.h"
 
 
-sbit DQ_INT = P2^1;
-sbit DQ_EXT = P2^2;
+sbit DQ_INT = P0^4;
+sbit DQ_EXT = P0^5;
 
 
 /**
@@ -28,22 +28,23 @@ sbit DQ_EXT = P2^2;
 * @output   ：None
 * @retval   ：温度，摄氏度
 **/
-uint16_t DS18B20_Temper_Convert(uint16_t temper)
+uint16_t DS18B20_Temper_Convert(int16_t temper)
 {
     float tp;
+    uint16_t tem = 0;        
     if(temper < 0)    //考虑负温度的情况
     {
-       temper = temper - 1;
-       temper =~ temper;
-       tp = temper * 0.0625;        //16位温度转换成10进制的温度
-       temper = tp * 100 + 0.5;     //留两个小数点，并四舍五入
+       tem = temper - 1;
+       tem = ~tem;
+       tp = tem * 0.0625;        //16位温度转换成10进制的温度
+       tem = tp * 100 + 0.5;     //留两个小数点，并四舍五入
     }
     else
     {
         tp = temper * 0.0625;  //16位温度转换成10进制的温度
-        temper = tp * 100 + 0.5;  //留两个小数点，并四舍五入
+        tem = tp * 100 + 0.5;  //留两个小数点，并四舍五入
     }
-    return temper;
+    return tem;
 }
 
 /**
@@ -56,7 +57,7 @@ uint16_t DS18B20_Temper_Convert(uint16_t temper)
 uint16_t DS18B20_Get_Int_Temper(void)
 {    
     uint8_t a, b;         
-    uint16_t t = 0;    
+    int16_t t = 0;    
     if(!DS18B20_Int_init())
     {
         return 0xffff;
