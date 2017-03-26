@@ -40,7 +40,7 @@ sbit HT1621_DAT = P2^2;   // - - HT1621数据引脚
 /* 功能描述:LCD清屏数组 */
 uint8_t code Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
-uint8_t code Ht1621_Tube_1[]={0x05,0x00,0x06,0x02,0x03,0x03,0x07,0x00,0x07,0x03};  //0 1 2 3 4 5 6 7 8 9
+uint8_t code Ht1621_Tube_1[]={0x02,0x07,0x01,0x05,0x04,0x04,0x00,0x07,0x00,0x04};  //0 1 2 3 4 5 6 7 8 9
 uint8_t code Ht1621_Tube_2[]={0x0F,0x06,0x0B,0x0F,0x06,0x0D,0x0D,0x07,0x0F,0x0F};  //0 1 2 3 4 5 6 7 8 9
 
 uint8_t Ht1621_Tab[16] = {0x00};
@@ -53,15 +53,15 @@ uint8_t Ht1621_Tab[16] = {0x00};
 * @output   ：None
 * @retval   ：None
 **/
-void Display_Init(void)
-{
-    // Display_PM2_5_Ico();
-    // Display_CO2_Ico();
-    // Display_Fan_Ico();
+// void Display_Init(void)
+// {
+//     // Display_PM2_5_Ico();
+//     // Display_CO2_Ico();
+//     // Display_Fan_Ico();
     
 
 
-}
+// }
 
 /**
 * @Function ：清除屏幕显示
@@ -232,7 +232,7 @@ void Display_CO2_Ico(bool sw)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_Fan_Ico(bool sw)
+void Display_Fan_Ico(uint8_t sw)
 {
     if(sw)
     {
@@ -260,16 +260,22 @@ void Display_WindLevel(uint8_t level)
         case 1: 
             Ht1621_Tab[7] |= 0x07;
             Ht1621_Tab[7] ^= 0x03;
+            Ht1621_Tab[6] |= 0x07;
+            Ht1621_Tab[6] ^= 0x06;
         break;
         case 2: 
             Ht1621_Tab[7] |= 0x07;
             Ht1621_Tab[7] ^= 0x05;
+            Ht1621_Tab[6] |= 0x07;
+            Ht1621_Tab[6] ^= 0x04;
         break;
         case 3: 
             Ht1621_Tab[7] |= 0x07;
             Ht1621_Tab[7] ^= 0x06;
+            Ht1621_Tab[6] |= 0x07;
         break;
     }
+    Ht1621WrOneData(6, Ht1621_Tab[6]);              
     Ht1621WrOneData(7, Ht1621_Tab[7]);          
 }
 
@@ -280,11 +286,11 @@ void Display_WindLevel(uint8_t level)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_Ex_WindLevel(uint8_t level)
-{
-    // Ht1621WrOneData(6, Ht1621Tab6[level]);
-    // Ht1621WrOneData(7, Ht1621Tab7[level]);           
-}
+// void Display_Ex_WindLevel(uint8_t level)
+// {
+//     // Ht1621WrOneData(6, Ht1621Tab6[level]);
+//     // Ht1621WrOneData(7, Ht1621Tab7[level]);           
+// }
 
 /**
 * @Function ：显示内循环风量
@@ -293,11 +299,11 @@ void Display_Ex_WindLevel(uint8_t level)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_In_WindLevel(uint8_t level)
-{
-    // Ht1621WrOneData(6, Ht1621Tab8[level]);
-    // Ht1621WrOneData(7, Ht1621Tab9[level]);           
-}
+// void Display_In_WindLevel(uint8_t level)
+// {
+//     // Ht1621WrOneData(6, Ht1621Tab8[level]);
+//     // Ht1621WrOneData(7, Ht1621Tab9[level]);           
+// }
 
 /**
 * @Function ：显示PM2.5数值
@@ -313,6 +319,12 @@ void Display_PM2_5_value(uint16_t value)
     hun = value / 100 % 10;
     ten = value / 10 % 10;
     one = value % 10;
+
+    // Ht1621_Tab[0] |= 0x07;
+    // Ht1621_Tab[0] ^= Ht1621_Tube_1[1];
+    // Ht1621_Tab[1] = Ht1621_Tube_2[1];
+    // Ht1621WrOneData(0, 0x08);          
+    // Ht1621WrOneData(1, Ht1621_Tab[1]); 
 
     Ht1621_Tab[0] |= 0x07;
     Ht1621_Tab[0] ^= Ht1621_Tube_1[hun];
@@ -348,6 +360,7 @@ void Display_CO2_value(uint16_t value)
     hun = value / 100 % 10;
     ten = value / 10 % 10;
     one = value % 10;
+
 
     Ht1621_Tab[8] |= 0x07;
     Ht1621_Tab[8] ^= Ht1621_Tube_1[ths];

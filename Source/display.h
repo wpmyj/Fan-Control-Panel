@@ -28,7 +28,7 @@ void Ht1621WrData(uint8_t Data, uint8_t cnt);
 void Ht1621WrCmd(uint8_t Cmd);
 void Ht1621WrOneData(uint8_t Addr, uint8_t Data);
 void Ht1621WrAllData(uint8_t Addr, uint8_t *p, uint8_t cnt);
-
+void Ht1621_Init(void);
 
 
 #endif

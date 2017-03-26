@@ -31,10 +31,12 @@ bool Uart_1_TX_Busy;
 bool Uart_2_TX_Busy;
 bool respons_flg = OFF;
 bool send_respons = OFF;
+bool Receive_Status_flag = OFF;
+
 
 // uint8_t RX_1_buf[RX_1_BUF_SIZE];
 // uint8_t RX_2_buf[RX_2_BUF_SIZE];
-// uint8_t RX_vir_buf[RX_VIR_BUF_SIZE];
+uint8_t RX_vir_buf[RX_VIR_BUF_SIZE];
 
 // uint8_t RX_1_cnt;
 // uint8_t RX_2_cnt;
@@ -42,7 +44,7 @@ bool send_respons = OFF;
 
 extern bool Status_Switch;       	//开机/关机状态位，ON:开机，OFF：关机
 extern bool Status_RunModel;       	//手动/自动状态位，ATUO/MANUAL
-extern bool Status_WindModel;      //内循环/外循环状态位，EXTER/INTER
+extern uint8_t Status_WindModel;      //内循环/外循环/旁通状态位，EXTER/INTER/BYPASS
 extern bool Status_FilteSetTime;     //滤网时间设置状态位，ON：进入，OFF：退出
 extern bool Status_FilteIco;			//滤网显示/关闭状态位，
 extern uint8_t Status_Filte;      //滤网当前状态位
@@ -75,70 +77,90 @@ void Uart_vir_Main(void)
     if (REND)
     {
         REND = 0;
-        temp = RBUF;
-        //Temp_Value = temp;
+        temp = RBUF; 
+        //Uart_1_SendByte(temp);		//测试 
         if(Uart_vir_cnt > 1)
         {
-            if(Uart_vir_cnt == 3)
+
+            RX_vir_buf[Uart_vir_cnt] = temp;
+            Uart_vir_cnt++;
+                       
+            if(Uart_vir_cnt >= RX_VIR_BUF_SIZE)
             {
-                if(temp == 0xAB)    //回应包
-                {
-                    respons_flg = ON;
-                    return;
-                }
-                else
-                {
-                    send_respons = ON;
-                }
+                //Uart_1_SendByte(temp);		//测试     
+                Uart_vir_cnt = 0;
+                Receive_Status_flag = ON;
+                return;
             }
-            else if(Uart_vir_cnt == 4)
-            {
-                Status_Switch = temp;
-            }
-            else if(Uart_vir_cnt == 5)
-            {
-                Status_RunModel = temp;             
-            }
-            else if(Uart_vir_cnt == 6)
-            {
-                Status_WindModel = temp;             
-            }
-            else if(Uart_vir_cnt == 7)
-            {
-                Status_Filte = temp;             
-            }  
-            else if(Uart_vir_cnt == 8)
-            {
-                Wind_Level = temp;             
-            }            
-            else if(Uart_vir_cnt == 13)
-            {
-                Temp_Ex_Value = temp;             
-            }  
-            else if(Uart_vir_cnt == 14)
-            {
-                Temp_In_Value = temp;
-                Uart_vir_cnt = 0;    
-                return;         
-            }        
-            Uart_vir_cnt++;     
+            // if(Uart_vir_cnt == 2)
+            // {
+            //     if(temp == 0xAB)    //回应包
+            //     {
+            //         respons_flg = ON;
+            //         Uart_1_SendString("respons_flg !\r\n"); 
+            //         Uart_vir_cnt = 0;    
+            //         return;
+            //     }
+            //     else if(temp == 0xBA)    //数据包
+            //     {
+            //         send_respons = ON;
+            //     }
+            // }
+            // else if(Uart_vir_cnt == 3)
+            // {
+            //     Status_Switch = temp;
+            // }
+            // else if(Uart_vir_cnt == 4)
+            // {
+            //     Status_RunModel = temp;             
+            // }
+            // else if(Uart_vir_cnt == 5)
+            // {
+            //     Status_WindModel = temp;             
+            // }
+            // else if(Uart_vir_cnt == 6)
+            // {
+            //     Status_Filte = temp;             
+            // }  
+            // else if(Uart_vir_cnt == 7)
+            // {
+            //     Wind_Level = temp;             
+            // }            
+            // else if(Uart_vir_cnt == 12)
+            // {
+            //     Temp_Ex_Value = temp;             
+            // }  
+            // else if(Uart_vir_cnt == 13)
+            // {
+            //     Temp_In_Value = temp;
+            //     Uart_vir_cnt = 0;    
+            //     return;         
+            // }        
+            // Uart_vir_cnt++;                 
         }
 
         if(Uart_vir_cnt == 1)
         {
+            //Uart_1_SendByte(temp);		//测试     
             if(temp == 0x00)
             {
+                RX_vir_buf[Uart_vir_cnt] = 0x00;                            
                 Uart_vir_cnt++;
             }
             else
             {
                 Uart_vir_cnt = 0;
-            }
+            }          
         }
 
         if(temp == 0xAA && Uart_vir_cnt == 0)
         {
-            Uart_vir_cnt++;
+            if(Receive_Status_flag == OFF)
+            {
+                RX_vir_buf[Uart_vir_cnt] = 0xAA;            
+                Uart_vir_cnt++;
+                //Uart_1_SendByte(temp);		//测试     
+            }
         }
 
 
@@ -291,11 +313,11 @@ void Uart_1_Isr(void) interrupt 4 using 1
         temp = SBUF;
         if(Uart_1_cnt > 1)
         {
-            if(Uart_1_cnt == 2)
+            if(Uart_1_cnt == 3)
             {
                 value = temp;
             }
-            else if(Uart_1_cnt == 3)
+            else if(Uart_1_cnt == 4)
             {
                 CO2_Value = value * 256 + temp;
                 Uart_1_cnt = 0;      
@@ -401,11 +423,11 @@ void Uart_2_Isr(void) interrupt 8 using 1
         temp = S2BUF;
         if(Uart_2_cnt > 1)
         {
-            if(Uart_2_cnt == 6)
+            if(Uart_2_cnt == 7)
             {
                 value = temp;
             }
-            else if(Uart_2_cnt == 7)
+            else if(Uart_2_cnt == 8)
             {
                 PM25_Value = value * 256 + temp;
                 Uart_2_cnt = 0;   

@@ -9,11 +9,12 @@
 #define UART_2_BAUD 9600    //串口2波特率
 //#define UART_VIR_BAUD (FOSC / 9600 / 3)    //模拟串口波特率
 //#define UART_VIR_BAUD  (256 - FOSC / 12 / 9600 / 3)
-#define UART_VIR_BAUD  0xFE80
+//#define UART_VIR_BAUD  0xFE80
+#define UART_VIR_BAUD  0xFD00                  // 4800bps @ 11.0592MHz
 
 #define RX_1_BUF_SIZE 32
 #define RX_2_BUF_SIZE 32
-#define RX_VIR_BUF_SIZE 32
+#define RX_VIR_BUF_SIZE 17
 
 void Uart_vir_Main(void);
 void Uart_vir_Init(void);
