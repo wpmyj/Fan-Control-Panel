@@ -28,8 +28,12 @@ bool Status_FilteSetCleanTime = OFF;     //滤网清洁时间设置状态位，O
 bool Status_FilteSetChangeTime = OFF;     //滤网更换时间设置状态位，ON：进入，OFF：退出
 bool Status_PM2_5SetUpperLimit = OFF;     //PM2.5上限设置状态位，ON：进入，OFF：退出
 
-bool Status_FilteIco = OFF;			//滤网显示/关闭状态位，
+bool Status_FilteIco = OFF;			//滤网显示/关闭状态位
+bool Status_PM2_5Ico = ON;			//PM2.5显示/关闭状态位，
 uint8_t Status_Filte = NORMAL;      //滤网当前状态位
+
+
+uint8_t Ico_Flash_count = 0;      	//PM2_5数值闪烁次数，每秒加一
 
 
 uint8_t Wind_Level = 3;      		//风量大小变量，范围：1-3
@@ -54,9 +58,12 @@ uint8_t Temp_In_Value = 6;
 
 extern uint8_t Time_Base_1M, Time_Base_Model_1M;
 extern bool Ico_Flash_flg;
+extern bool PM2_5_Flash_flg;
 extern bool Update_Sensor_flg;
 extern bool Auto_Timer_flg;
 extern bool Send_Status_flg;
+extern bool Send_co2_flg;
+
 extern bool respons_flg;
 extern bool send_respons;
 extern bool Receive_Status_flag;
@@ -82,6 +89,8 @@ void Open_Init(void)
 
 	Send_Status_flg = OFF;
 	Update_Sensor_flg = OFF;
+	Status_PM2_5Ico = ON;
+
 
 	Status_RunModel = AUTO;
 	Status_WindModel = EXTER; 
@@ -172,8 +181,20 @@ void Check_RunModel_Key(void)
         		Delay_ms(10);               //10x150=1500ms=1.5s 
 				if(key_press_num == 150)      //大约2s
 		  		{
-		  			key_press_num = 0;        //如果达到长按键标准,则进入长按键动作
-           			while(!KEY_RUN_MODEL)
+		  			//key_press_num = 0;        //如果达到长按键标准,则进入长按键动作
+
+					if(!KEY_WIND_MODEL)
+					{
+						Status_PM2_5SetUpperLimit = ON;		//进入PM2.5上限值设置
+						Status_FilteSetChangeTime = OFF;	//退出滤网更换时间设置模式
+						Status_FilteSetCleanTime = OFF;		//退出滤网清洁时间设置模式
+						Status_PM2_5Ico = ON;				//PM2_5显示状态
+						Display_PM2_5_value(PM2_5_UpperLimit);
+						while(!KEY_RUN_MODEL);						
+						return;
+					}
+
+           			if(!KEY_RUN_MODEL)
 		       		{
 						Status_FilteSetCleanTime = ~Status_FilteSetCleanTime;  	//进入/退出滤网清洁时间设置模式
 						Status_FilteSetChangeTime = OFF;						//退出滤网更换时间设置模式
@@ -186,9 +207,16 @@ void Check_RunModel_Key(void)
 		    	}
 			}
 
+			if(Status_PM2_5SetUpperLimit == ON)
+			{
+				Status_PM2_5SetUpperLimit = OFF;		//退出PM2.5上限值设置模式，并且返回
+				UPDATE_PM2_5_VALUE;						//刷新PM2.5数码管			
+				return;
+			}
+
 			if(Status_FilteSetCleanTime == ON)
 			{
-				Status_FilteSetCleanTime = OFF;						//退出滤网清洁时间设置模式，并且返回
+				Status_FilteSetCleanTime = OFF;			//退出滤网清洁时间设置模式，并且返回
 				UPDATE_PM2_5_VALUE;						//刷新PM2.5数码管			
 				return;
 			}
@@ -238,7 +266,20 @@ void Check_WindModel_Key(void)
 				if(key_press_num == 150)      //大约2s
 		  		{
 		  			//key_press_num = 0;        //如果达到长按键标准,则进入长按键动作
-           			while(!KEY_WIND_MODEL)
+           			
+					if(!KEY_RUN_MODEL)
+					{
+						Status_PM2_5SetUpperLimit = ON;		//进入PM2.5上限值设置
+						Status_FilteSetChangeTime = OFF;	//退出滤网更换时间设置模式
+						Status_FilteSetCleanTime = OFF;		//退出滤网清洁时间设置模式
+						Status_PM2_5Ico = ON;				//PM2_5显示状态
+						Display_PM2_5_value(PM2_5_UpperLimit);
+						while(!KEY_WIND_MODEL);						
+						return;
+					}
+					
+					
+					if(!KEY_WIND_MODEL)
 		       		{
 						if(Status_Filte == CHANGE)
 						{
@@ -261,6 +302,13 @@ void Check_WindModel_Key(void)
 					}						
 					return;
 		    	}
+			}
+
+			if(Status_PM2_5SetUpperLimit == ON)
+			{
+				Status_PM2_5SetUpperLimit = OFF;			//退出PM2.5上限值设置模式，并且返回
+				UPDATE_PM2_5_VALUE;						//刷新PM2.5数码管			
+				return;
 			}
 
 			// if(Status_FilteSetChangeTime == ON)
@@ -369,7 +417,9 @@ void Check_WindUp_Key(void)
     {
 		Delay_ms(10);          //延时去抖，一般10-20ms
 		if(!KEY_WIND_UP)           //再次确认按键是否按下，没有按下则退出
-		{	 	
+		{	 
+			Ico_Flash_count = 0;
+				
 	   		while(!KEY_WIND_UP)
 	    	{
 				key_press_num++;
@@ -450,6 +500,8 @@ void Check_WindDown_Key(void)
 		Delay_ms(10);          //延时去抖，一般10-20ms
 		if(!KEY_WIND_DOWN)           //再次确认按键是否按下，没有按下则退出
 		{	 	
+			Ico_Flash_count = 0;
+			
 	   		while(!KEY_WIND_DOWN)
 	    	{
 				key_press_num++;
@@ -545,17 +597,15 @@ void Filte_Update(void)
 		if(Ico_Flash_flg == OFF)
 		{
 			Ico_Flash_flg = ON;
-
 			if(Status_FilteIco == OFF)
 			{
 				Display_Filte_Ico(TRUE);
-				Status_FilteIco = ON;
 			}
 			else
 			{
-				Display_Filte_Ico(FLASE);
-				Status_FilteIco = OFF;			
+				Display_Filte_Ico(FLASE);	
 			}
+			Status_FilteIco = ~Status_FilteIco;
 		}
 	}
 	// else if(Status_Filte == CHANGE)
@@ -857,11 +907,36 @@ void main()
 
 			Filte_Update();		//滤网状态监控
 
+			if(Status_PM2_5SetUpperLimit == ON)
+			{
+				if(PM2_5_Flash_flg == OFF)
+				{
+					Ico_Flash_count++;
+					PM2_5_Flash_flg = ON;
+					if(Status_PM2_5Ico == OFF)
+					{
+						Display_PM2_5_value(PM2_5_UpperLimit);					
+					}
+					else
+					{
+						Display_PM2_5_clean();	
+					}
+					Status_PM2_5Ico = ~Status_PM2_5Ico;
+					if(Ico_Flash_count > 9)		//10秒无操作，恢复
+					{
+						Ico_Flash_count = 0;
+						Status_PM2_5SetUpperLimit = OFF;
+						UPDATE_PM2_5_VALUE;	
+					}
+				}	
+			}
+
 			Check_RunModel_Key();
 			Check_WindModel_Key();
 			Check_Filte_Key();
 			Check_WindUp_Key();
 			Check_WindDown_Key();
+
 
 			if(Send_Status_flg == OFF)
 			{
@@ -871,6 +946,12 @@ void main()
 					//Send_Status_Drive();	//若无返回，每秒重发1次
 					//Uart_1_SendString("Send_Status_Drive !\r\n");
 				}
+				//Send_Com_CO2();			//发送读取CO2值命令
+			}
+
+      		if(Send_co2_flg == OFF)
+			{     
+				Send_co2_flg = ON;
 				Send_Com_CO2();			//发送读取CO2值命令
 			}
 
@@ -882,10 +963,10 @@ void main()
 				{
 					Display_PM2_5_value(PM25_Value);
 				}
-				else if(Status_PM2_5SetUpperLimit == ON)
-				{
-					Display_PM2_5_value(PM2_5_UpperLimit);					
-				}
+				// else if(Status_PM2_5SetUpperLimit == ON)
+				// {
+				// 	Display_PM2_5_value(PM2_5_UpperLimit);					
+				// }
 				else if(Status_FilteSetCleanTime == ON)
 				{
 					Display_PM2_5_value(Filte_CleanTime);					

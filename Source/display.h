@@ -8,7 +8,7 @@
 
 
 
-
+void Display_PM2_5_clean(void);
 void Display_Clear(void);
 void Display_Exter_Ico(bool sw);
 void Display_Inter_Ico(bool sw);

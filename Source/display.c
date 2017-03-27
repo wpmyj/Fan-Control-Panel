@@ -305,6 +305,33 @@ void Display_WindLevel(uint8_t level)
 //     // Ht1621WrOneData(7, Ht1621Tab9[level]);           
 // }
 
+
+/**
+* @Function ：关闭显示PM2.5数值
+* @brief    ：
+* @input    ：None 
+* @output   ：None
+* @retval   ：None
+**/
+void Display_PM2_5_clean(void)
+{
+
+    Ht1621_Tab[0] &= 0x80;
+    Ht1621_Tab[1] = 0x00;
+    Ht1621WrOneData(0, Ht1621_Tab[0]);          
+    Ht1621WrOneData(1, Ht1621_Tab[1]);   
+
+    Ht1621_Tab[2] &= 0x80;
+    Ht1621_Tab[3] = 0x00;
+    Ht1621WrOneData(2, Ht1621_Tab[2]);          
+    Ht1621WrOneData(3, Ht1621_Tab[3]); 
+
+    Ht1621_Tab[4] &= 0x80;
+    Ht1621_Tab[5] = 0x00;
+    Ht1621WrOneData(4, Ht1621_Tab[4]);          
+    Ht1621WrOneData(5, Ht1621_Tab[5]); 
+}
+
 /**
 * @Function ：显示PM2.5数值
 * @brief    ：
