@@ -232,19 +232,19 @@ void Display_CO2_Ico(bool sw)
 * @output   ：None
 * @retval   ：None
 **/
-void Display_Fan_Ico(uint8_t sw)
-{
-    if(sw)
-    {
-        Ht1621_Tab[6] |= 0x07;
-    }
-    else
-    {
-        Ht1621_Tab[6] |= 0x07;
-        Ht1621_Tab[6] ^= 0x07;
-    }   
-    Ht1621WrOneData(6, Ht1621_Tab[6]);          
-}
+// void Display_Fan_Ico(bool sw)
+// {
+//     if(sw)
+//     {
+//         Ht1621_Tab[6] |= 0x07;
+//     }
+//     else
+//     {
+//         Ht1621_Tab[6] |= 0x07;
+//         Ht1621_Tab[6] ^= 0x07;
+//     }   
+//     Ht1621WrOneData(6, Ht1621_Tab[6]);          
+// }
 
 /**
 * @Function ：显示风量等级
@@ -316,17 +316,17 @@ void Display_WindLevel(uint8_t level)
 void Display_PM2_5_clean(void)
 {
 
-    Ht1621_Tab[0] &= 0x80;
+    Ht1621_Tab[0] &= 0x08;
     Ht1621_Tab[1] = 0x00;
     Ht1621WrOneData(0, Ht1621_Tab[0]);          
     Ht1621WrOneData(1, Ht1621_Tab[1]);   
 
-    Ht1621_Tab[2] &= 0x80;
+    Ht1621_Tab[2] &= 0x08;
     Ht1621_Tab[3] = 0x00;
     Ht1621WrOneData(2, Ht1621_Tab[2]);          
     Ht1621WrOneData(3, Ht1621_Tab[3]); 
 
-    Ht1621_Tab[4] &= 0x80;
+    Ht1621_Tab[4] &= 0x08;
     Ht1621_Tab[5] = 0x00;
     Ht1621WrOneData(4, Ht1621_Tab[4]);          
     Ht1621WrOneData(5, Ht1621_Tab[5]); 

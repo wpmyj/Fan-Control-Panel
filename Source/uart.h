@@ -12,7 +12,7 @@
 //#define UART_VIR_BAUD  0xFE80
 #define UART_VIR_BAUD  0xFD00                  // 4800bps @ 11.0592MHz
 
-#define RX_1_BUF_SIZE 32
+#define RX_1_BUF_SIZE 9
 #define RX_2_BUF_SIZE 32
 #define RX_VIR_BUF_SIZE 17
 
@@ -22,11 +22,11 @@ void Uart_vir_Init(void);
 
 void Uart_1_Init(void);
 void Uart_1_SendByte(uint8_t dat);
-void Uart_1_SendString(uint8_t *s);
+//void Uart_1_SendString(uint8_t *s);
 
 void Uart_2_Init(void);
 void Uart_2_SendByte(uint8_t dat);
-void Uart_2_SendString(uint8_t *s);
+//void Uart_2_SendString(uint8_t *s);
 
 
 

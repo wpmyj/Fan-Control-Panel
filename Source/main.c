@@ -62,14 +62,16 @@ extern bool PM2_5_Flash_flg;
 extern bool Update_Sensor_flg;
 extern bool Auto_Timer_flg;
 extern bool Send_Status_flg;
-extern bool Send_co2_flg;
+//extern bool Send_co2_flg;
 
 extern bool respons_flg;
 extern bool send_respons;
 extern bool Receive_Status_flag;
+extern bool Receive_PM2_5_Status_flag;
+extern bool Receive_CO2_Status_flag;
 
-// extern uint8_t RX_1_buf[RX_1_BUF_SIZE];
-// extern uint8_t RX_2_buf[RX_2_BUF_SIZE];
+extern uint8_t RX_1_buf[RX_1_BUF_SIZE];
+extern uint8_t RX_2_buf[RX_2_BUF_SIZE];
 extern uint8_t RX_vir_buf[RX_VIR_BUF_SIZE];
 
 //extern uint8_t Temp_Value;
@@ -226,7 +228,8 @@ void Check_RunModel_Key(void)
 			Time_Base_Model_1M = 0;
 			if(Status_RunModel == AUTO)
 			{
-				Auto_Timer_flg = ON;				
+				Auto_Timer_flg = ON;	
+				//Status_WindModel == EXTER;			
 				Display_Auto_Ico(TRUE);
 				Display_Manual_Ico(FLASE);				
 			}
@@ -462,7 +465,7 @@ void Check_WindUp_Key(void)
 				PM2_5_UpperLimit++;
 				if(PM2_5_UpperLimit > 150)
 				{
-					PM2_5_UpperLimit = 30;
+					PM2_5_UpperLimit = 150;
 				}
 				Eeprom_Write_Add(PM2_5_UPPER_H_ADDRESS, PM2_5_UpperLimit);
 				Delay_ms(100);		
@@ -555,7 +558,7 @@ void Check_WindDown_Key(void)
 					PM2_5_UpperLimit = 150;
 				}
 				PM2_5_UpperLimit--;
-				if(PM2_5_UpperLimit <= 0)
+				if(PM2_5_UpperLimit < 30)
 				{
 					PM2_5_UpperLimit = 30;
 				}
@@ -733,8 +736,8 @@ void Send_Status_Drive(void)
 
 	for(i = 0; i < 17; i++)
 	{
-		//Uart_2_SendByte(buff[i]);
-		Uart_1_SendByte(buff[i]);		//测试
+		Uart_2_SendByte(buff[i]);
+		//Uart_1_SendByte(buff[i]);		//测试
 		
 	}
 
@@ -772,8 +775,8 @@ void Send_Respons_Drive(void)
 
 	for(i = 0; i < 17; i++)
 	{
-		//Uart_2_SendByte(buff[i]);
-		Uart_1_SendByte(buff[i]);		//测试
+		Uart_2_SendByte(buff[i]);
+		//Uart_1_SendByte(buff[i]);		//测试
 	}
 }
 
@@ -787,7 +790,7 @@ void Send_Respons_Drive(void)
 **/
 void main()
 {
-	uint16_t i;
+	//uint16_t i;
 	
 	Uart_1_Init();
     Uart_2_Init();
@@ -905,6 +908,17 @@ void main()
 				}
 			}
 
+			if(Receive_PM2_5_Status_flag == ON)
+			{
+				Receive_PM2_5_Status_flag = OFF;
+				PM25_Value = RX_2_buf[6] * 256 + RX_2_buf[7];
+			}
+			if(Receive_CO2_Status_flag == ON)
+			{
+				Receive_CO2_Status_flag = OFF;
+				CO2_Value = RX_1_buf[2] * 256 + RX_1_buf[3];
+			}
+
 			Filte_Update();		//滤网状态监控
 
 			if(Status_PM2_5SetUpperLimit == ON)
@@ -943,17 +957,17 @@ void main()
 				Send_Status_flg = ON;
 				if(respons_flg == OFF)
 				{				
-					//Send_Status_Drive();	//若无返回，每秒重发1次
+					Send_Status_Drive();	//若无返回，每秒重发1次
 					//Uart_1_SendString("Send_Status_Drive !\r\n");
 				}
-				//Send_Com_CO2();			//发送读取CO2值命令
-			}
-
-      		if(Send_co2_flg == OFF)
-			{     
-				Send_co2_flg = ON;
 				Send_Com_CO2();			//发送读取CO2值命令
 			}
+
+      		// if(Send_co2_flg == OFF)
+			// {     
+			// 	Send_co2_flg = ON;
+			// 	Send_Com_CO2();			//发送读取CO2值命令
+			// }
 
             if(Update_Sensor_flg == OFF)
             {
@@ -976,13 +990,21 @@ void main()
 					Display_PM2_5_value(Filte_ChangeTime);					
 				}
 
-				Display_CO2_value(CO2_Value);
+				if(Status_WindModel == EXTER)
+				{
+					Display_CO2_value(CO2_Value - 25);
+				}
+				else
+				{
+					Display_CO2_value(CO2_Value);
+				}
+				
             }
 
 			if(send_respons == ON)
 			{
 				send_respons = OFF;
-				//Send_Respons_Drive();
+				Send_Respons_Drive();
 				//Uart_1_SendString("Send_Respons_Drive !\r\n");				
 			}
 
@@ -990,9 +1012,12 @@ void main()
 			{
 				if(Status_WindModel == INTER)
 				{
-					if(Time_Base_Model_1M > 30 && Auto_Timer_flg == ON)
+					if(Time_Base_Model_1M > 29 && Auto_Timer_flg == ON)		//30分钟后切换
+					//if(Time_Base_Model_1M > 2 && Auto_Timer_flg == ON)		//2分钟后切换，测试					
 					{
 						Status_WindModel = EXTER;
+						Display_Exter_Ico(TRUE);
+						Display_Inter_Ico(FLASE);
 						Time_Base_Model_1M = 0;
 						//Auto_Timer_flg = ON;
 						SEND_STATUS;						
@@ -1005,36 +1030,14 @@ void main()
 
 				if(Status_WindModel == EXTER || Status_WindModel == BYPASS)
 				{
-					// if(Temp_Ex_Value > Temp_In_Value)
-					// {
-					// 	if((Temp_Ex_Value - Temp_In_Value) < 15)
-					// 	{
-					// 		if()
-					// 		Status_WindModel = BYPASS;
-					// 		SEND_STATUS;												
-					// 	}
-					// 	else
-					// 	{
-					// 		Status_WindModel = EXTER;							
-					// 	}
-					// }
-					// else
-					// {
-					// 	if((Temp_In_Value - Temp_Ex_Value) < 15)
-					// 	{
-					// 		Status_WindModel = BYPASS;
-					// 		SEND_STATUS;																			
-					// 	}
-					// 	else
-					// 	{
-					// 		Status_WindModel = EXTER;							
-					// 	}
-					// }
-					if(Time_Base_Model_1M > 60)
+					if(Time_Base_Model_1M > 59)					//60分钟后检测
+					//if(Time_Base_Model_1M > 2)					//3分钟后检测，测试					
 					{
 						if(PM25_Value > PM2_5_UpperLimit)			//每小时检测一次
 						{
 							Status_WindModel = INTER;
+							Display_Exter_Ico(FLASE);
+							Display_Inter_Ico(TRUE);
 							Time_Base_Model_1M = 0;
 							Auto_Timer_flg = OFF;
 							SEND_STATUS;												

@@ -24,7 +24,7 @@ bool PM2_5_Flash_flg = ON;
 bool Send_Status_flg = ON;
 bool Update_Sensor_flg = ON;
 bool Auto_Timer_flg = OFF;
-bool Send_co2_flg = ON;
+//bool Send_co2_flg = ON;
 
 
 uint8_t Time_Base_1S, Time_Base_1M;
@@ -60,11 +60,10 @@ void PCA_isr() interrupt 7 using 1
                 Time_Base_Model_1M++;
             }
 
-            if(Update_Sensor_flg == ON)
-            {
-                Update_Sensor_flg = OFF;
-            }
+
         }
+
+
 
         if(Ico_Flash_flg == ON)
         {
@@ -84,11 +83,15 @@ void PCA_isr() interrupt 7 using 1
 
     if (cnt2-- == 0)
     {
-        cnt2 = 30;       //300ms
-        if(Send_co2_flg == ON)
+        cnt2 = 300;       //3000ms
+        // if(Send_co2_flg == ON)
+        // {
+        //     Send_co2_flg = OFF;
+        // }  
+        if(Update_Sensor_flg == ON)
         {
-            Send_co2_flg = OFF;
-        }  
+            Update_Sensor_flg = OFF;
+        }
 
     }
 
@@ -130,21 +133,21 @@ void Timer_Init(void)
 * @output   ：None
 * @retval   ：None
 **/
-void Delay_x_10us(uint16_t xus)
-{ 
-    uint8_t i;
-    uint16_t u16;
+// void Delay_x_10us(uint16_t xus)
+// { 
+//     uint8_t i;
+//     uint16_t u16;
     
-	for(u16 = 0; u16 < xus; u16++)
-	{
-        _nop_();
-        _nop_();
-        _nop_();
-        i = 24;
-        while (--i);
-    }
+// 	for(u16 = 0; u16 < xus; u16++)
+// 	{
+//         _nop_();
+//         _nop_();
+//         _nop_();
+//         i = 24;
+//         while (--i);
+//     }
 
-}
+// }
 
 /**
 * @Function ：10us延时子程序

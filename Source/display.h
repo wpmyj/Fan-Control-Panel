@@ -17,7 +17,7 @@ void Display_Auto_Ico(bool sw);
 void Display_Filte_Ico(bool sw);
 void Display_PM2_5_Ico(bool sw);
 void Display_CO2_Ico(bool sw);
-void Display_Fan_Ico(bool sw);
+//void Display_Fan_Ico(bool sw);
 void Display_WindLevel(uint8_t level);
 void Display_Ex_WindLevel(uint8_t level);
 void Display_In_WindLevel(uint8_t level);

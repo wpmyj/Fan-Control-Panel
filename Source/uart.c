@@ -32,10 +32,12 @@ bool Uart_2_TX_Busy;
 bool respons_flg = OFF;
 bool send_respons = OFF;
 bool Receive_Status_flag = OFF;
+bool Receive_PM2_5_Status_flag = OFF;
+bool Receive_CO2_Status_flag = OFF;
 
 
-// uint8_t RX_1_buf[RX_1_BUF_SIZE];
-// uint8_t RX_2_buf[RX_2_BUF_SIZE];
+uint8_t RX_1_buf[RX_1_BUF_SIZE];
+uint8_t RX_2_buf[RX_2_BUF_SIZE];
 uint8_t RX_vir_buf[RX_VIR_BUF_SIZE];
 
 // uint8_t RX_1_cnt;
@@ -92,51 +94,7 @@ void Uart_vir_Main(void)
                 Receive_Status_flag = ON;
                 return;
             }
-            // if(Uart_vir_cnt == 2)
-            // {
-            //     if(temp == 0xAB)    //回应包
-            //     {
-            //         respons_flg = ON;
-            //         Uart_1_SendString("respons_flg !\r\n"); 
-            //         Uart_vir_cnt = 0;    
-            //         return;
-            //     }
-            //     else if(temp == 0xBA)    //数据包
-            //     {
-            //         send_respons = ON;
-            //     }
-            // }
-            // else if(Uart_vir_cnt == 3)
-            // {
-            //     Status_Switch = temp;
-            // }
-            // else if(Uart_vir_cnt == 4)
-            // {
-            //     Status_RunModel = temp;             
-            // }
-            // else if(Uart_vir_cnt == 5)
-            // {
-            //     Status_WindModel = temp;             
-            // }
-            // else if(Uart_vir_cnt == 6)
-            // {
-            //     Status_Filte = temp;             
-            // }  
-            // else if(Uart_vir_cnt == 7)
-            // {
-            //     Wind_Level = temp;             
-            // }            
-            // else if(Uart_vir_cnt == 12)
-            // {
-            //     Temp_Ex_Value = temp;             
-            // }  
-            // else if(Uart_vir_cnt == 13)
-            // {
-            //     Temp_In_Value = temp;
-            //     Uart_vir_cnt = 0;    
-            //     return;         
-            // }        
-            // Uart_vir_cnt++;                 
+               
         }
 
         if(Uart_vir_cnt == 1)
@@ -304,7 +262,7 @@ void Uart_1_Init(void)
 **/
 void Uart_1_Isr(void) interrupt 4 using 1
 {
-    static uint8_t Uart_1_cnt = 0, value;
+    static uint8_t Uart_1_cnt = 0;
     uint8_t temp;
 
     if (RI)
@@ -313,23 +271,33 @@ void Uart_1_Isr(void) interrupt 4 using 1
         temp = SBUF;
         if(Uart_1_cnt > 1)
         {
-            if(Uart_1_cnt == 3)
-            {
-                value = temp;
-            }
-            else if(Uart_1_cnt == 4)
-            {
-                CO2_Value = value * 256 + temp;
-                Uart_1_cnt = 0;      
-                return;          
-            }
+            RX_1_buf[Uart_1_cnt] = temp;
             Uart_1_cnt++;
+                       
+            if(Uart_1_cnt >= RX_1_BUF_SIZE)
+            {    
+                Uart_1_cnt = 0;
+                Receive_CO2_Status_flag = ON;
+                return;
+            }
+            // if(Uart_1_cnt == 3)
+            // {
+            //     value = temp;
+            // }
+            // else if(Uart_1_cnt == 4)
+            // {
+            //     CO2_Value = value * 256 + temp;
+            //     Uart_1_cnt = 0;      
+            //     return;          
+            // }
+            // Uart_1_cnt++;
         }
 
         if(Uart_1_cnt == 1)
         {
             if(temp == 0x86)
             {
+                RX_1_buf[Uart_1_cnt] = temp;                
                 Uart_1_cnt++;
             }
             else
@@ -340,7 +308,12 @@ void Uart_1_Isr(void) interrupt 4 using 1
 
         if(temp == 0xFF && Uart_1_cnt == 0)
         {
-            Uart_1_cnt++;
+            if(Receive_CO2_Status_flag == OFF)
+            {
+                RX_1_buf[Uart_1_cnt] = temp;            
+                Uart_1_cnt++;
+            }
+
         }
 
     }
@@ -375,13 +348,13 @@ void Uart_1_SendByte(uint8_t dat)
 * @output   ：None
 * @retval   ：None
 **/
-void Uart_1_SendString(uint8_t *s)
-{
-    while (*s)
-    {
-        Uart_1_SendByte(*s++);
-    }
-}
+// void Uart_1_SendString(uint8_t *s)
+// {
+//     while (*s)
+//     {
+//         Uart_1_SendByte(*s++);
+//     }
+// }
 
 
 
@@ -414,7 +387,7 @@ void Uart_2_Init(void)
 **/
 void Uart_2_Isr(void) interrupt 8 using 1
 {
-    static uint8_t Uart_2_cnt = 0, value;
+    static uint8_t Uart_2_cnt = 0;
     uint8_t temp;
 
     if (S2CON & S2RI)
@@ -423,23 +396,33 @@ void Uart_2_Isr(void) interrupt 8 using 1
         temp = S2BUF;
         if(Uart_2_cnt > 1)
         {
-            if(Uart_2_cnt == 7)
-            {
-                value = temp;
-            }
-            else if(Uart_2_cnt == 8)
-            {
-                PM25_Value = value * 256 + temp;
-                Uart_2_cnt = 0;   
-                return;             
-            }
+            RX_2_buf[Uart_2_cnt] = temp;
             Uart_2_cnt++;
+                       
+            if(Uart_2_cnt >= RX_2_BUF_SIZE)
+            {   
+                Uart_2_cnt = 0;
+                Receive_PM2_5_Status_flag = ON;
+                return;
+            }
+            // if(Uart_2_cnt == 7)
+            // {
+            //     value = temp;
+            // }
+            // else if(Uart_2_cnt == 8)
+            // {
+            //     PM25_Value = value * 256 + temp;
+            //     Uart_2_cnt = 0;   
+            //     return;             
+            // }
+            // Uart_2_cnt++;
         }
 
         if(Uart_2_cnt == 1)
         {
             if(temp == 0x3D)
             {
+                RX_2_buf[Uart_2_cnt] = temp;                
                 Uart_2_cnt++;
             }
             else
@@ -450,7 +433,11 @@ void Uart_2_Isr(void) interrupt 8 using 1
 
         if(temp == 0x32 && Uart_2_cnt == 0)
         {
-            Uart_2_cnt++;
+            if(Receive_PM2_5_Status_flag == OFF)
+            {
+                RX_2_buf[Uart_2_cnt] = temp;            
+                Uart_2_cnt++;
+            }
         }
 
     }
@@ -485,13 +472,13 @@ void Uart_2_SendByte(uint8_t dat)
 * @output   ：None
 * @retval   ：None
 **/
-void Uart_2_SendString(uint8_t *s)
-{
-    while (*s)
-    {
-        Uart_2_SendByte(*s++);
-    }
-}
+// void Uart_2_SendString(uint8_t *s)
+// {
+//     while (*s)
+//     {
+//         Uart_2_SendByte(*s++);
+//     }
+// }
 
 
 
