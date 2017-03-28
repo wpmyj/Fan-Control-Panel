@@ -62,7 +62,7 @@ extern bool PM2_5_Flash_flg;
 extern bool Update_Sensor_flg;
 extern bool Auto_Timer_flg;
 extern bool Send_Status_flg;
-//extern bool Send_co2_flg;
+extern bool Send_co2_flg;
 
 extern bool respons_flg;
 extern bool send_respons;
@@ -147,7 +147,7 @@ void Check_Switch_Key(void)
             if(Status_Switch == OFF)
 			{
 				Open_Init();
-				//Uart_1_SendString("open !\r\n");
+				//Uart_1_SendString("open !\r\n");				
 			}
 			else
 			{
@@ -156,7 +156,10 @@ void Check_Switch_Key(void)
 				//Uart_1_SendString("close !\r\n");		
 			}
 			Status_Switch = ~Status_Switch;
+			
 			SEND_STATUS;
+			//Send_Status_Drive();	//若无返回，每秒重发1次	
+			
 	   	}
 	}
 }
@@ -862,7 +865,14 @@ void main()
 	{
 
 		Check_Switch_Key();
-
+		if(Send_Status_flg == OFF)
+		{
+			Send_Status_flg = ON;
+			if(respons_flg == OFF)
+			{				
+				Send_Status_Drive();	//若无返回，每秒重发1次
+			}
+		}
 		if(Status_Switch == ON)
 		{
 			Uart_vir_Main();
@@ -952,22 +962,13 @@ void main()
 			Check_WindDown_Key();
 
 
-			if(Send_Status_flg == OFF)
-			{
-				Send_Status_flg = ON;
-				if(respons_flg == OFF)
-				{				
-					Send_Status_Drive();	//若无返回，每秒重发1次
-					//Uart_1_SendString("Send_Status_Drive !\r\n");
-				}
+
+
+      		if(Send_co2_flg == OFF)
+			{     
+				Send_co2_flg = ON;
 				Send_Com_CO2();			//发送读取CO2值命令
 			}
-
-      		// if(Send_co2_flg == OFF)
-			// {     
-			// 	Send_co2_flg = ON;
-			// 	Send_Com_CO2();			//发送读取CO2值命令
-			// }
 
             if(Update_Sensor_flg == OFF)
             {

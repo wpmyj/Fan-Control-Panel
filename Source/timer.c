@@ -24,7 +24,7 @@ bool PM2_5_Flash_flg = ON;
 bool Send_Status_flg = ON;
 bool Update_Sensor_flg = ON;
 bool Auto_Timer_flg = OFF;
-//bool Send_co2_flg = ON;
+bool Send_co2_flg = ON;
 
 
 uint8_t Time_Base_1S, Time_Base_1M;
@@ -83,11 +83,11 @@ void PCA_isr() interrupt 7 using 1
 
     if (cnt2-- == 0)
     {
-        cnt2 = 300;       //3000ms
-        // if(Send_co2_flg == ON)
-        // {
-        //     Send_co2_flg = OFF;
-        // }  
+        cnt2 = 200;       //2000ms
+        if(Send_co2_flg == ON)
+        {
+            Send_co2_flg = OFF;
+        }  
         if(Update_Sensor_flg == ON)
         {
             Update_Sensor_flg = OFF;
